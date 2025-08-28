@@ -141,7 +141,7 @@ export default function ScreenManager() {
         <h3 className="text-lg font-semibold">📋 목록</h3>
         <div className="flex gap-2">
           <button
-            onClick={() => setModalType('sort')}
+            onClick={() => { setModalType('sort'); fetchScreensMenuOrder();}}
             className="bg-green-600 text-white px-4 py-1 rounded text-sm"
           >
             화면 순서 관리

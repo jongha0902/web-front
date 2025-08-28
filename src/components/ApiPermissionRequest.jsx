@@ -7,9 +7,10 @@ import useSortableData from '../utils/useSortableData';
 import ApiListDropdown from './ApiListDropdown';
 
 const ApiPermissionRequest = () => {
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const { showMessage } = useMessage();
   const { showError } = useError();
+
   const [apiList, setApiList] = useState([]);
   const [methodFilter, setMethodFilter] = useState('ALL');
   const [selectedApi, setSelectedApi] = useState(null);
@@ -17,7 +18,10 @@ const ApiPermissionRequest = () => {
   const [permissionList, setPermissionList] = useState([]);
   const [apiSearchKeyword, setApiSearchKeyword] = useState('');
   const [permissionMethodFilter, setPermissionMethodFilter] = useState('ALL');
-  const [apiKey, setApiKey] = useState(null);
+
+  // 🔑 모달에서 발급/재발급 구분 위해 type까지 보관
+  // { key: string, type: 'create' | 'regenerate' }
+  const [apiKeyInfo, setApiKeyInfo] = useState(null);
 
   useEffect(() => {
     fetchApiList();
@@ -68,22 +72,29 @@ const ApiPermissionRequest = () => {
         showMessage("유저ID는 필수입니다.");
         return;
       }
-  
+
+      // 현재 상태를 기준으로 type 결정
+      const wasHasApiKey = !!user?.has_api_key;
+
       let res;
-      if (user.has_api_key) { // 재발급 new_api_key
+      if (wasHasApiKey) { // 재발급
         res = await api.put(`/apim/api-key/${user.user_id}/regenerate`);
-      } else { // 최초 발급 api_key
-        res = await api.post('/apim/api-key', { user_id: user.user_id});
+      } else { // 최초 발급
+        res = await api.post('/apim/api-key', { user_id: user.user_id });
       }
-      const apiKey = res.data.api_key || res.data.new_api_key;
-      setApiKey(apiKey);
+
+      const key = res.data.api_key || res.data.new_api_key;
+      setApiKeyInfo({ key, type: wasHasApiKey ? 'regenerate' : 'create' });
+
+      // ✅ 발급/재발급 성공 후에는 무조건 전역 프로필 재조회해서 user.has_api_key 동기화
+      await refreshUser();
+
     } catch (e) {
       const message = e.response?.data?.message || e.message || '오류';
       const detail = e.response?.data?.detail ? ` (${e.response.data.detail})` : '';
       showError(`❌ ${message}${detail}`);
     }
   };
-  
 
   const handleRequest = async () => {
     if (!selectedApi || !reason.trim()) {
@@ -93,7 +104,7 @@ const ApiPermissionRequest = () => {
 
     try {
       const payload = {
-        api_id: selectedApi.id,   // 또는 selectedApi.api_id (실제 필드명에 따라)
+        api_id: selectedApi.id,
         reason,
       };
       const res = await api.post(`/apim/api-permission-requests/${user.user_id}`, payload);
@@ -108,15 +119,13 @@ const ApiPermissionRequest = () => {
     }
   };
 
-  //const filteredApiList = methodFilter === 'ALL' ? apiList : apiList.filter(api => api.method === methodFilter);
-
   const filteredPermissionApiList = permissionList.filter((item) => {
-    const keywordMatch =
-      item.api_name.toLowerCase().includes(apiSearchKeyword.toLowerCase())
-  
-    const methodMatch =
-      permissionMethodFilter === 'ALL' || item.method.toUpperCase() === permissionMethodFilter;
-  
+    const name = (item.api_name || '').toLowerCase();
+    const path = (item.path || '').toLowerCase();
+    const keyword = apiSearchKeyword.toLowerCase();
+
+    const keywordMatch = name.includes(keyword) || path.includes(keyword);
+    const methodMatch = permissionMethodFilter === 'ALL' || (item.method || '').toUpperCase() === permissionMethodFilter;
     return keywordMatch && methodMatch;
   });
 
@@ -234,8 +243,9 @@ const ApiPermissionRequest = () => {
             className="flex-1 min-w-[180px] border px-3 py-2 rounded text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 bg-blue-50"
           />
           <label className="w-20 text-gray-700 px-3">Method</label>
+          {/* 🔧 버그 수정: methodFilter → permissionMethodFilter */}
           <select
-            value={methodFilter}
+            value={permissionMethodFilter}
             onChange={(e) => setPermissionMethodFilter(e.target.value)}
             className="border px-3 py-2 rounded text-sm bg-blue-50"
           >
@@ -331,18 +341,20 @@ const ApiPermissionRequest = () => {
             </table>
         </div>
       </div>
-      {/* API Key 발급 완료 모달 */}
-      {apiKey && (
+
+      {/* 🔔 API Key 발급/재발급 결과 모달 */}
+      {apiKeyInfo && (
         <ModalApiKeyResult
-          apiKey={apiKey}
-          onClose={() => setApiKey(null)}
+          apiKey={apiKeyInfo.key}
+          type={apiKeyInfo.type}
+          onClose={() => setApiKeyInfo(null)}
         />
       )}
     </div>
-);
+  );
 };
 
-const ModalApiKeyResult = ({ apiKey, onClose }) => {
+const ModalApiKeyResult = ({ apiKey, type, onClose }) => {
   const handleCopy = async () => {
     try {
       await navigator.clipboard.writeText(apiKey);
@@ -352,12 +364,18 @@ const ModalApiKeyResult = ({ apiKey, onClose }) => {
     }
   };
 
+  const isRegen = type === 'regenerate';
+
   return (
     <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex justify-center items-center">
       <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md text-left relative pb-20">
-        <h3 className="text-lg font-bold mb-4 text-gray-800 border-b pb-2">✅ API Key 발급 완료</h3>
+        <h3 className="text-lg font-bold mb-4 text-gray-800 border-b pb-2">
+          {isRegen ? '🔄 API Key 재발급 완료' : '✅ API Key 발급 완료'}
+        </h3>
         <p className="text-sm text-gray-700 mb-4">
-          아래 API Key를 안전하게 보관해주세요.<br />재발급은 관리자에게 문의해주세요.
+          {isRegen
+            ? '아래 새 API Key를 안전하게 보관해주세요. 기존 키는 즉시 무효화됩니다.'
+            : '아래 API Key를 안전하게 보관해주세요. 재발급 시 기존 키는 무효화됩니다.'}
         </p>
         <div className="bg-gray-100 text-gray-800 px-4 py-2 rounded font-mono text-sm break-all flex items-center justify-between">
           <span>{apiKey}</span>

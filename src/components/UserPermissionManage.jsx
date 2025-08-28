@@ -18,7 +18,7 @@ export default function UserPermissionManage() {
   // 오른쪽 영역: 유저 목록
   const [users, setUsers] = useState([]);
   const [userSearchKeyword, setUserSearchKeyword] = useState('');
-  const [userSearchField, setUserSearchField] = useState('user_id');
+  const [userSearchField, setUserSearchField] = useState('permission_code');
   const { sortedData, sortField, sortDirection, handleSort } = useSortableData(users);
 
   // 권한 종류 목록 조회

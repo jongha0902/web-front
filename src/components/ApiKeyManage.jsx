@@ -4,8 +4,10 @@ import { useError } from '../utils/ErrorContext.jsx';
 import { useMessage } from '../utils/MessageContext.jsx';
 import { isEmpty } from '../utils/common.js';
 import UserSearchModal from './UserSearchModal.jsx';
+import { useAuth } from '../store/Auth';
 
 export default function ApiKey() {
+  const { refreshUser } = useAuth();
   const [keyList, setKeyList] = useState([]);
   const [page, setPage] = useState(1);
   const [perPage] = useState(15);
@@ -68,6 +70,7 @@ export default function ApiKey() {
       setModalAction('done');
       showError('');
       fetchKeyList();
+      refreshUser();
 
     } catch (e) {
       const message = e.response?.data?.message || e.message || '오류';
@@ -108,6 +111,7 @@ export default function ApiKey() {
       setModalAction('');
       setRegenerateKey('');
       fetchKeyList();
+      refreshUser();
     } catch (e) {
       const message = e.response?.data?.message || e.message || '오류';
       const detail = e.response?.data?.detail ? ` (${e.response.data.detail})` : '';
@@ -302,13 +306,13 @@ export default function ApiKey() {
                 <label className="w-20 text-sm font-medium text-gray-700">비고</label>
                 {(modalType === 'generate' || modalType === 'edit') && !modalAction ? (
                   <textarea
-                    value={modalUserComment}
+                    value={modalUserComment ?? ''}
                     onChange={e => setModalComment(e.target.value)}
                     className="border flex-1 px-3 py-2 rounded h-[150px]"
                   />
                 ) : (
                   <textarea
-                    value={modalUserComment}
+                    value={modalUserComment ?? ''}
                     readOnly
                     className="border flex-1 px-3 py-2 rounded bg-gray-100 text-gray-600 cursor-not-allowed h-[150px]"
                   />
@@ -387,7 +391,7 @@ export default function ApiKey() {
               <div className="flex items-center">
                 <label className="w-24 text-sm font-medium text-gray-700">비고</label>
                 <textarea
-                  value={modalUserComment}
+                  value={modalUserComment ?? ''}
                   readOnly
                   className="flex-1 border px-3 py-2 rounded bg-gray-100 text-gray-600 h-[150px]"
                 />
