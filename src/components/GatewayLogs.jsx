@@ -1,10 +1,10 @@
 // src/components/GatewayLogs.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import api from '../utils/axios';
 import { useError } from '../utils/ErrorContext';
 import { useMessage } from '../utils/MessageContext';
 import { useAuth } from '../store/Auth';
-import { FileSearch } from 'lucide-react';
+import { FileSearch, Copy, X } from 'lucide-react';
 
 export default function GatewayLogs() {
   const { user } = useAuth();
@@ -23,29 +23,40 @@ export default function GatewayLogs() {
   const [filterUserId, setFilterUserId] = useState('');
   const [filterApiId, setFilterApiId] = useState('');
   const [filterMethod, setFilterMethod] = useState('ALL');
-  const [filterStatus, setFilterStatus] = useState(''); // 숫자 문자열 (예: 200)
-  const [filterSuccess, setFilterSuccess] = useState('ALL'); // ALL | Y | N
+  const [filterStatus, setFilterStatus] = useState('');
+  const [filterSuccess, setFilterSuccess] = useState('ALL');
 
-  // 기간 기본값: 현재 ~ 1시간전
-  const formatDateTimeLocal = (offsetHours = 0) => {
-      const now = new Date();
-      now.setHours(now.getHours() + offsetHours); // 🔄 시간 오프셋 적용
-      const pad = (n) => String(n).padStart(2, '0');
-      const yyyy = now.getFullYear();
-      const mm = pad(now.getMonth() + 1);
-      const dd = pad(now.getDate());
-      const hh = pad(now.getHours());
-      const min = pad(now.getMinutes());
-      return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
-    };
-    
-    // ✅ 기본값 세팅
-    const [searchDateStart, setSearchDateStart] = useState(formatDateTimeLocal(-1));      
-    const [searchDateEnd, setSearchDateEnd] = useState(formatDateTimeLocal());    
+  // yyyy-MM-ddTHH:mm 포맷 생성
+  const formatDateTimeLocal = (date) => {
+    const pad = (n) => String(n).padStart(2, '0');
+    const yyyy = date.getFullYear();
+    const mm = pad(date.getMonth() + 1);
+    const dd = pad(date.getDate());
+    const hh = pad(date.getHours());
+    const min = pad(date.getMinutes());
+    return `${yyyy}-${mm}-${dd}T${hh}:${min}`;
+  };
 
-  // 상세보기 모달
-  const [modalData, setModalData] = useState(null); // { title, content }
-  const [viewJson, setViewJson] = useState(false);
+  // 시작: 오늘 00:00
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+
+  // 끝: 현재 시각
+  const now = new Date();
+
+  const [searchDateStart, setSearchDateStart] = useState(formatDateTimeLocal(todayStart));
+  const [searchDateEnd, setSearchDateEnd] = useState(formatDateTimeLocal(now));
+
+  // 통합 상세모달
+  const [modalLog, setModalLog] = useState(null);
+  // 섹션별 JSON 보기 토글 상태
+  const [viewJson, setViewJson] = useState({
+    headers: true,
+    query_param: true,
+    body: true,
+    response: true,
+    error_message: true
+  });
 
   useEffect(() => {
     fetchLogs();
@@ -78,13 +89,13 @@ export default function GatewayLogs() {
       if (isAdmin) {
         if (filterUserId) params.user_id = filterUserId;
       } else {
-        params.user_id = user?.user_id; // 일반 유저는 자기 로그만
+        params.user_id = user?.user_id;
       }
 
       if (filterApiId) params.api_id = filterApiId;
       if (filterMethod !== 'ALL') params.method = filterMethod;
-      if (filterSuccess !== 'ALL') params.is_success = filterSuccess; // 'Y'/'N'
-      if (filterStatus) params.status_code = filterStatus; // exact match
+      if (filterSuccess !== 'ALL') params.is_success = filterSuccess;
+      if (filterStatus) params.status_code = filterStatus;
 
       const res = await api.get('/apim/gateway-logs', { params });
       setLogs(Array.isArray(res.data.items) ? res.data.items : []);
@@ -103,21 +114,73 @@ export default function GatewayLogs() {
 
   // JSON 안전 파싱
   function tryParseJson(str) {
+    if (str == null) return null;
+    if (typeof str !== 'string') return str;
     try {
       return JSON.parse(str);
     } catch {
-      return { error: '유효한 JSON이 아닙니다.', 원문: str };
+      return null;
     }
   }
 
+  // 섹션 렌더링 공통
+  function Section({ title, raw, jsonKey }) {
+    const data = useMemo(() => tryParseJson(raw), [raw]);
+
+    const shown = viewJson[jsonKey] && data !== null ? JSON.stringify(data, null, 2) : (raw || '');
+
+    const isJson = data !== null;
+
+    const toggle = () =>
+      setViewJson((prev) => ({ ...prev, [jsonKey]: !prev[jsonKey] }));
+
+    const copy = async () => {
+      try {
+        await navigator.clipboard.writeText(shown || '');
+        showMessage('클립보드에 복사되었습니다.');
+      } catch {
+        showError('복사 실패');
+      }
+    };
+
+    return (
+      <div className="border rounded mb-3">
+        <div className="flex items-center justify-between px-3 py-2 bg-gray-50 border-b">
+          <h4 className="font-semibold">{title}</h4>
+          <div className="flex items-center gap-2">
+            <button onClick={toggle} className="px-2 py-1 text-xs bg-gray-200 rounded">
+              {viewJson[jsonKey] ? '원문 보기' : (isJson ? 'JSON 보기' : '원문')}
+            </button>
+            <button onClick={copy} className="px-2 py-1 text-xs bg-gray-300 rounded inline-flex items-center gap-1">
+              <Copy size={14}/>복사
+            </button>
+          </div>
+        </div>
+        <pre className="p-3 text-xs whitespace-pre-wrap break-all max-h-64 overflow-auto bg-white">
+          {shown || <span className="text-gray-400">-</span>}
+        </pre>
+      </div>
+    );
+  }
+
+  // 모달 전체 JSON 복사
+  const copyWholeLog = async () => {
+    if (!modalLog) return;
+    try {
+      await navigator.clipboard.writeText(JSON.stringify(modalLog, null, 2));
+      showMessage('전체 JSON이 복사되었습니다.');
+    } catch {
+      showError('복사 실패');
+    }
+  };
+
   return (
     <div className="flex flex-col flex-1 h-full min-h-0">
-      <h2 className="text-xl font-bold mb-2">🛡️ 게이트웨이 로그 조회</h2>
+      <h2 className="text-xl font-bold mb-2">🛡️ API 사용 로그</h2>
 
       {/* 🔎 검색 필터 */}
       <div className="flex flex-wrap justify-between items-start gap-4 mb-4 mt-2 text-sm p-3 bg-white shadow rounded">
         <div className="flex flex-wrap items-center gap-1 flex-1 min-w-[320px]">
-          {/* (관리자만) 유저ID */}
           {isAdmin && (
             <div className="flex items-center">
               <label className="w-16 text-center font-semibold text-gray-700">유저ID</label>
@@ -129,8 +192,6 @@ export default function GatewayLogs() {
               />
             </div>
           )}
-
-          {/* API ID */}
           <div className="flex items-center">
             <label className="w-16 text-center font-semibold text-gray-700">API ID</label>
             <input
@@ -140,8 +201,6 @@ export default function GatewayLogs() {
               className="border px-3 py-2 rounded w-36 bg-blue-50"
             />
           </div>
-
-          {/* 메서드 */}
           <div className="flex items-center">
             <label className="w-20 text-gray-700 px-3 font-semibold">Method</label>
             <select
@@ -159,8 +218,6 @@ export default function GatewayLogs() {
               <option value="OPTIONS">OPTIONS</option>
             </select>
           </div>
-
-          {/* 성공여부 */}
           <div className="flex items-center">
             <label className="w-20 text-gray-700 px-3 font-semibold">통신상태</label>
             <select
@@ -173,8 +230,6 @@ export default function GatewayLogs() {
               <option value="N">실패</option>
             </select>
           </div>
-
-          {/* 상태코드 */}
           <div className="flex items-center">
             <label className="w-20 text-center font-semibold text-gray-700">상태코드</label>
             <input
@@ -185,8 +240,6 @@ export default function GatewayLogs() {
               placeholder="200"
             />
           </div>
-
-          {/* 조회기간 */}
           <div className="flex items-center flex-wrap gap-2 min-w-[270px]">
             <label className="w-20 text-gray-700 px-3 font-semibold">조회기간</label>
             <input
@@ -205,7 +258,6 @@ export default function GatewayLogs() {
           </div>
         </div>
 
-        {/* 검색 버튼 */}
         <div className="flex-shrink-0">
           <button
             onClick={handleSearch}
@@ -250,7 +302,7 @@ export default function GatewayLogs() {
                   <th className="border px-3 py-2 w-[10%]">상태코드</th>
                   <th className="border px-3 py-2 w-[18%]">요청시간</th>
                   <th className="border px-3 py-2 w-[18%]">응답시간</th>
-                  <th className="border px-3 py-2 w-[12%]">상세</th>
+                  <th className="border px-3 py-2 w-[10%]">비고</th>
                 </tr>
               </thead>
               <tbody>
@@ -259,48 +311,27 @@ export default function GatewayLogs() {
                     <td className="border px-3 py-1">
                       {totalCount - ((page - 1) * perPage + i)}
                     </td>
-                    <td className="border px-3 py-1 break-words">{log.user_id}</td>
+                    <td className="border px-3 py-1 break-words">{log.user_id || '-'}</td>
                     <td className="border px-3 py-1 break-words">{log.api_id}</td>
-                    <td className="border px-3 py-1 text-xs">{log.method}</td>
-                    <td className="border px-3 py-1">{log.is_success}</td>
+                    <td className="border px-3 py-1">{log.method}</td>
+                    <td className="border px-3 py-1">{log.is_success == "Y" ? "✅ 성공" : "❌ 실패"}</td>
                     <td className="border px-3 py-1">{log.status_code}</td>
-                    <td className="border px-3 py-1 text-xs">{log.requested_at}</td>
-                    <td className="border px-3 py-1 text-xs">{log.responded_at}</td>
-                    <td className="border px-2 py-1 text-xs">
-                      <div className="flex flex-wrap gap-1 justify-center">
-                        <button
-                          onClick={() => { setModalData({ title: '요청 헤더(headers)', content: log.headers ?? '' }); setViewJson(false); }}
-                          className="inline-flex items-center gap-1 bg-gray-50 text-gray-700 px-2 py-1 rounded hover:bg-gray-100 text-xs"
-                        >
-                          <FileSearch size={14}/>헤더
-                        </button>
-                        <button
-                          onClick={() => { setModalData({ title: '쿼리 파라미터(query_param)', content: log.query_param ?? '' }); setViewJson(false); }}
-                          className="inline-flex items-center gap-1 bg-gray-50 text-gray-700 px-2 py-1 rounded hover:bg-gray-100 text-xs"
-                        >
-                          <FileSearch size={14}/>쿼리
-                        </button>
-                        <button
-                          onClick={() => { setModalData({ title: '요청 바디(body)', content: log.body ?? '' }); setViewJson(false); }}
-                          className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded hover:bg-blue-100 text-xs"
-                        >
-                          <FileSearch size={14}/>요청
-                        </button>
-                        <button
-                          onClick={() => { setModalData({ title: '응답(response)', content: log.response ?? '' }); setViewJson(false); }}
-                          className="inline-flex items-center gap-1 bg-green-50 text-green-700 px-2 py-1 rounded hover:bg-green-100 text-xs"
-                        >
-                          <FileSearch size={14}/>응답
-                        </button>
-                        {log.error_message && (
-                          <button
-                            onClick={() => { setModalData({ title: '에러 메시지(error_message)', content: log.error_message ?? '' }); setViewJson(false); }}
-                            className="inline-flex items-center gap-1 bg-red-50 text-red-700 px-2 py-1 rounded hover:bg-red-100 text-xs"
-                          >
-                            <FileSearch size={14}/>에러
-                          </button>
-                        )}
-                      </div>
+                    <td className="border px-3 py-1">{log.requested_at}</td>
+                    <td className="border px-3 py-1">{log.responded_at}</td>
+                    <td className="border px-2 py-1">
+                      <button
+                        onClick={() => {setModalLog(log); 
+                                        setViewJson({ headers: true,
+                                                      query_param: true,
+                                                      body: true,
+                                                      response: true,
+                                                      error_message: true
+                                                    });
+                        }}
+                        className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded hover:bg-blue-100 text-xs"
+                      >
+                        <FileSearch size={14}/>상세보기
+                      </button>
                     </td>
                   </tr>
                 )) : (
@@ -331,40 +362,76 @@ export default function GatewayLogs() {
         </div>
       </div>
 
-      {/* 상세보기 모달 */}
-      {modalData && (
+      {/* 통합 상세보기 모달 */}
+      {modalLog && (
         <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center">
-          <div className="bg-white rounded shadow-lg max-w-4xl w-full min-h-[520px] max-h-[75vh] flex flex-col">
-            <h3 className="text-lg font-bold p-4 border-b">{modalData.title}</h3>
-            <div className="flex-1 overflow-y-auto p-4">
-              <pre className="bg-gray-100 p-3 text-xs whitespace-pre-wrap break-all rounded min-h-[420px]">
-                {viewJson ? JSON.stringify(tryParseJson(modalData.content ?? ''), null, 2) : (modalData.content ?? '')}
-              </pre>
+          <div className="bg-white rounded shadow-lg max-w-5xl w-full max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b">
+              <h3 className="text-lg font-bold">상세 로그</h3>
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={copyWholeLog}
+                  className="px-3 py-1 text-sm bg-gray-200 rounded inline-flex items-center gap-1"
+                >
+                  <Copy size={14}/> 전체 JSON 복사
+                </button>
+                <button
+                  onClick={() => setModalLog(null)}
+                  className="p-1 rounded hover:bg-gray-200"
+                  aria-label="close"
+                >
+                  <X size={18}/>
+                </button>
+              </div>
             </div>
-            <div className="p-4 border-t flex justify-end gap-2">
-              <button
-                onClick={() => {
-                  navigator.clipboard.writeText(
-                    viewJson
-                      ? JSON.stringify(tryParseJson(modalData.content ?? ''), null, 2)
-                      : (modalData.content ?? '')
-                  );
-                  showMessage('✅ 클립보드에 복사되었습니다.');
-                }}
-                className="bg-gray-400 text-white px-4 py-1 rounded"
-              >
-                복사
-              </button>
-              <button onClick={() => setViewJson(v=>!v)} className="bg-gray-300 text-gray-800 px-4 py-1 rounded">
-                {viewJson ? '원문 보기' : 'JSON 보기'}
-              </button>
-              <button onClick={() => setModalData(null)} className="bg-blue-600 text-white px-4 py-1 rounded">
+
+            <div className="p-4 overflow-y-auto">
+              {/* 요약 */}
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-3 mb-4 text-sm">
+                <Info label="유저" value={modalLog.user_id}/>
+                <Info label="API ID" value={modalLog.api_id}/>
+                <Info label="Method" value={modalLog.method}/>
+                <Info label="통신상태" value={modalLog.is_success == "Y" ? "✅ 성공" : "❌ 실패"}/>
+                <Info label="상태코드" value={modalLog.status_code}/>
+                <Info label="요청시간" value={modalLog.requested_at}/>
+                <Info label="응답시간" value={modalLog.responded_at}/>
+                <Info label="지연(ms)" value={modalLog.latency_ms}/>
+                <Info label="Client IP" value={modalLog.client_ip}/>
+                <Info label="User-Agent" value={modalLog.user_agent}/>
+                <Info label="Path" value={modalLog.path}/>
+              </div>
+
+              {/* 섹션들 */}
+              <Section title="Headers" raw={modalLog.headers} jsonKey="headers" />
+              <Section title="Query Params" raw={modalLog.query_param} jsonKey="query_param" />
+              <Section title="Request Body" raw={modalLog.body} jsonKey="body" />
+              <Section title="Response" raw={modalLog.response} jsonKey="response" />
+              <Section title="Error Message" raw={modalLog.error_message} jsonKey="error_message" />
+            </div>
+
+            <div className="p-4 border-t flex justify-end">
+              <button onClick={() => setModalLog(null)} className="bg-blue-600 text-white px-4 py-1 rounded">
                 닫기
               </button>
             </div>
           </div>
         </div>
       )}
+    </div>
+  );
+}
+
+function Info({ label, value }) {
+  return (
+    <div className="border rounded bg-white">
+      {/* 헤더 */}
+      <div className="flex items-center justify-between px-3 py-1 bg-gray-50 border-b">
+        <h4 className="font-semibold text-sm text-gray-600">{label}</h4>
+      </div>
+      {/* 내용 */}
+      <div className="p-3 text-sm break-all min-h-[32px]">
+        {value || <span className="text-gray-400">-</span>}
+      </div>
     </div>
   );
 }

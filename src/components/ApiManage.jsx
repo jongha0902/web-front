@@ -294,7 +294,7 @@ export default function ApiList() {
                 <div className="flex items-center">
                   <label className="w-20 text-gray-700">API ID</label>
                   <input
-                    className={`flex-1 px-3 py-2 rounded ${modalType === 'view' ? 'bg-gray-100 text-gray-700 border-none' : 'border border-gray-300'}`}
+                    className={`flex-1 px-3 py-2 rounded ${modalType === 'view' || modalType === 'edit' ? 'bg-gray-100 text-gray-700 border-none' : 'border border-gray-300'}`}
                     readOnly={modalType === 'view' || modalType === 'edit'}
                     value={form.api_id}
                     onChange={e => setForm({ ...form, api_id: e.target.value })}

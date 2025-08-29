@@ -8,13 +8,30 @@ export default function ErrorModal() {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 z-[9999] flex justify-center items-center">
-       <div className="bg-white rounded shadow-lg p-6 w-full max-w-md">
-        <h3 className="text-lg font-bold text-red-600 mb-4">오류 발생</h3>
-        <p className="text-sm text-gray-800">{errorMessage}</p>
-        <div className="flex justify-end mt-4">
-          <button onClick={hideError} className="bg-red-600 text-white px-4 py-2 rounded">닫기</button>
+      <div className="bg-white rounded shadow-lg w-full max-w-md overflow-hidden">
+        
+        {/* 헤더 */}
+        <div className="px-6 py-3 border-b">
+          <h3 className="text-lg font-bold text-red-600">❌ 오류</h3>
         </div>
+  
+        {/* 본문 */}
+        <div className="px-6 py-4">
+          <p className="text-sm text-gray-800 whitespace-pre-line">{errorMessage}</p>
+        </div>
+  
+        {/* 푸터 */}
+        <div className="px-5 py-2 border-t flex justify-end">
+          <button
+            onClick={hideError}
+            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+          >
+            닫기
+          </button>
+        </div>
+  
       </div>
     </div>
   );
+  
 }

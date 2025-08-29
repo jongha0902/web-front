@@ -10,15 +10,16 @@ export default function UserPermissionManage() {
 
   // 왼쪽 영역: 권한 종류 관리
   const [permissionTypes, setPermissionTypes] = useState([]);
-  const [selectedPermissionType, setSelectedPermissionType] = useState(null);
+  const [selectedPermissionType, setSelectedPermissionType] = useState(null); // ✅ 객체 또는 null
   const [permissionSearchKeyword, setPermissionSearchKeyword] = useState('');
+  const [permissionSearchField, setPermissionSearchField] = useState('permission_code'); // ✅ 권한 검색 전용 필드
   const [modalType, setModalType] = useState('');
   const [editPermissionType, setEditPermissionType] = useState({});
 
   // 오른쪽 영역: 유저 목록
   const [users, setUsers] = useState([]);
   const [userSearchKeyword, setUserSearchKeyword] = useState('');
-  const [userSearchField, setUserSearchField] = useState('permission_code');
+  const [userSearchField, setUserSearchField] = useState('user_id');
   const { sortedData, sortField, sortDirection, handleSort } = useSortableData(users);
 
   // 권한 종류 목록 조회
@@ -27,7 +28,7 @@ export default function UserPermissionManage() {
       const params = {};
       if (permissionSearchKeyword) {
         params.search = permissionSearchKeyword;
-        params.search_field = userSearchField;  // <- 검색 기준 필드: permission_code 또는 permission_name
+        params.search_field = permissionSearchField;
       }
       const res = await api.get('/apim/user-permission-types', { params });
       setPermissionTypes(res.data.items || []);
@@ -41,9 +42,7 @@ export default function UserPermissionManage() {
   // 유저 목록 조회 (권한 종류별)
   const fetchUsersWithPermission = async (permissionTypeCode) => {
     try {
-      const params = { 
-        permission_code: permissionTypeCode
-      };
+      const params = { permission_code: permissionTypeCode };
       if (userSearchKeyword) {
         params[userSearchField] = userSearchKeyword;
       }
@@ -61,7 +60,7 @@ export default function UserPermissionManage() {
   }, []);
 
   useEffect(() => {
-    if (selectedPermissionType) {
+    if (selectedPermissionType?.permission_code) {
       fetchUsersWithPermission(selectedPermissionType.permission_code);
     }
   }, [selectedPermissionType]);
@@ -145,8 +144,8 @@ export default function UserPermissionManage() {
         {/* 검색 영역 */}
         <div className="flex flex-wrap items-center gap-4 mt-2 bg-white px-4 py-2 rounded border shadow-sm text-sm">
           <select
-            value={userSearchField}
-            onChange={(e) => setUserSearchField(e.target.value)}
+            value={permissionSearchField}
+            onChange={(e) => setPermissionSearchField(e.target.value)}
             className="border rounded px-3 py-2 w-[130px]"
           >
             <option value="permission_code">권한코드</option>
@@ -185,10 +184,10 @@ export default function UserPermissionManage() {
           <table className="w-full text-sm border table-fixed">
             <thead className="bg-gray-50 sticky top-0 z-10">
               <tr>
-                <th className="border px-3 py-2 w-[5%] ">#</th>
+                <th className="border px-3 py-2 w-[5%]">#</th>
                 <th className="border px-3 py-2 w-[15%]">권한코드</th>
                 <th className="border px-3 py-2 w-[15%]">권한명</th>
-                <th className="border px-3 py-2 w-[7%]">사용< br/>여부</th>
+                <th className="border px-3 py-2 w-[7%]">사용<br/>여부</th>
                 <th className="border px-3 py-2 w-[33%]">설명</th>
                 <th className="border px-3 py-2 w-[15%]">관리</th>
               </tr>
@@ -205,7 +204,7 @@ export default function UserPermissionManage() {
                         : ''
                     }`}
                   >
-                    <td className="border px-3 py-2 text-center">{(index + 1)}</td>
+                    <td className="border px-3 py-2 text-center">{index + 1}</td>
                     <td className="border px-3 py-2">{permissionType.permission_code}</td>
                     <td className="border px-3 py-2">{permissionType.permission_name}</td>
                     <td className="border px-3 py-1 text-center">
@@ -271,6 +270,10 @@ export default function UserPermissionManage() {
                 onChange={(e) => setUserSearchKeyword(e.target.value)}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
+                    if (!selectedPermissionType?.permission_code) {
+                      showMessage('⚠️ 먼저 왼쪽에서 권한을 선택하세요.');
+                      return;
+                    }
                     fetchUsersWithPermission(selectedPermissionType.permission_code);
                   }
                 }}
@@ -279,6 +282,10 @@ export default function UserPermissionManage() {
               />
               <button
                 onClick={() => {
+                  if (!selectedPermissionType?.permission_code) {
+                    showMessage('⚠️ 먼저 왼쪽에서 권한을 선택하세요.');
+                    return;
+                  }
                   fetchUsersWithPermission(selectedPermissionType.permission_code);
                 }}
                 className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
@@ -352,89 +359,100 @@ export default function UserPermissionManage() {
       {/* 모달 */}
       {modalType && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-xl w-[450px] max-h-[90vh] overflow-y-auto shadow-xl">
-            <h3 className="text-lg font-semibold mb-5 border-b pb-2">
+          <div className="bg-white rounded shadow-lg w-[450px] max-h-[90vh] overflow-y-auto">
+            {/* Header */}
+            <div className="px-6 py-3 border-b bg-gray-50">
+              <h3 className="text-lg font-semibold">
                 {modalType === 'create' ? '권한 추가' : modalType === 'edit' ? '권한 수정' : '권한 삭제'}
-            </h3>
+              </h3>
+            </div>
 
-            {modalType === 'delete' ? (
-                <>
-                <p className="text-sm mb-6">
-                    <span className="font-semibold text-red-600">{editPermissionType.permission_name}</span>
-                    ({editPermissionType.permission_code}) 을 삭제하시겠습니까?
+            {/* Body */}
+            <div className="px-6 py-4">
+              {modalType === 'delete' ? (
+                <p className="text-sm">
+                  <span className="font-semibold text-red-600">{editPermissionType.permission_name}</span>
+                  ({editPermissionType.permission_code}) 을 삭제하시겠습니까?
                 </p>
-                <div className="flex justify-end gap-2">
-                    <button onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
-                    삭제
-                    </button>
-                    <button onClick={() => setModalType('')} className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded">
-                    취소
-                    </button>
-                </div>
-                </>
-            ) : (
+              ) : (
                 <div className="space-y-4 text-sm">
-                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3">
                     <label className="w-28 text-gray-700">권한 코드</label>
                     <input
-                    value={editPermissionType.permission_code}
-                    onChange={e => setEditPermissionType({ ...editPermissionType, permission_code: e.target.value })}
-                    className={`flex-1 border px-3 py-2 rounded ${modalType !== 'create' ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
-                    readOnly={modalType !== 'create'}
+                      value={editPermissionType.permission_code ?? ''}
+                      onChange={e => setEditPermissionType({ ...editPermissionType, permission_code: e.target.value })}
+                      className={`flex-1 border px-3 py-2 rounded ${modalType !== 'create' ? 'bg-gray-100 text-gray-500 cursor-not-allowed' : ''}`}
+                      readOnly={modalType !== 'create'}
                     />
-                </div>
-                <div className="flex items-center gap-3">
+                  </div>
+                  <div className="flex items-center gap-3">
                     <label className="w-28 text-gray-700">권한 이름</label>
                     <input
-                    value={editPermissionType.permission_name}
-                    onChange={e => setEditPermissionType({ ...editPermissionType, permission_name: e.target.value })}
-                    className="flex-1 border px-3 py-2 rounded"
+                      value={editPermissionType.permission_name ?? ''}
+                      onChange={e => setEditPermissionType({ ...editPermissionType, permission_name: e.target.value })}
+                      className="flex-1 border px-3 py-2 rounded"
                     />
-                </div>
-                <div className="flex items-center gap-3">
+                  </div>
+                  <div className="flex items-center gap-3">
                     <label className="w-28 text-gray-700">사용 여부</label>
                     <div className="flex gap-6">
-                    <label className="flex items-center gap-2">
+                      <label className="flex items-center gap-2">
                         <input
-                        type="radio"
-                        name="use_yn"
-                        value="Y"
-                        checked={editPermissionType.use_yn === 'Y'}
-                        onChange={e => setEditPermissionType({ ...editPermissionType, use_yn: e.target.value })}
+                          type="radio"
+                          name="use_yn"
+                          value="Y"
+                          checked={editPermissionType.use_yn === 'Y'}
+                          onChange={e => setEditPermissionType({ ...editPermissionType, use_yn: e.target.value })}
                         />
                         사용
-                    </label>
-                    <label className="flex items-center gap-2">
+                      </label>
+                      <label className="flex items-center gap-2">
                         <input
-                        type="radio"
-                        name="use_yn"
-                        value="N"
-                        checked={editPermissionType.use_yn === 'N'}
-                        onChange={e => setEditPermissionType({ ...editPermissionType, use_yn: e.target.value })}
+                          type="radio"
+                          name="use_yn"
+                          value="N"
+                          checked={editPermissionType.use_yn === 'N'}
+                          onChange={e => setEditPermissionType({ ...editPermissionType, use_yn: e.target.value })}
                         />
                         미사용
-                    </label>
+                      </label>
                     </div>
-                </div>
-                <div className="flex items-start gap-3">
+                  </div>
+                  <div className="flex items-start gap-3">
                     <label className="w-28 pt-2 text-gray-700">설명</label>
                     <textarea
-                    value={editPermissionType.description}
-                    onChange={e => setEditPermissionType({ ...editPermissionType, description: e.target.value })}
-                    className="flex-1 border px-3 py-2 rounded h-[100px]"
+                      value={editPermissionType.description ?? ''}
+                      onChange={e => setEditPermissionType({ ...editPermissionType, description: e.target.value })}
+                      className="flex-1 border px-3 py-2 rounded h-[100px]"
                     />
+                  </div>
                 </div>
-                <div className="flex justify-end gap-2 pt-2">
-                    <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
-                    저장
-                    </button>
-                    <button onClick={() => setModalType('')} className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded">
-                    취소
-                    </button>
-                </div>
-                </div>
-            )}
+              )}
             </div>
+
+            {/* Footer */}
+            <div className="px-6 py-3 border-t flex justify-end gap-2">
+              {modalType === 'delete' ? (
+                <>
+                  <button onClick={handleDelete} className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded">
+                    삭제
+                  </button>
+                  <button onClick={() => setModalType('')} className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded">
+                    취소
+                  </button>
+                </>
+              ) : (
+                <>
+                  <button onClick={handleSave} className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded">
+                    저장
+                  </button>
+                  <button onClick={() => setModalType('')} className="bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded">
+                    취소
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>
