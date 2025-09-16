@@ -1,10 +1,11 @@
 import React, { Suspense, useEffect, useState, lazy } from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import SaveLastScreen from './components/SaveLastScreen';
 import PrivateRoute from './routes/PrivateRoute';
 import { useAuth } from './store/Auth';
 import api from './utils/axios';
 import { getCookie } from './utils/common';
+import { useError } from './utils/ErrorContext';
 
 // 레이지 로딩 컴포넌트
 const Sidebar = lazy(() => import('./components/Sidebar'));
@@ -36,10 +37,13 @@ function PrivateLayout({ children, title }) {
 }
 
 export default function App() {
-  const { isLoggedIn, user, isLoading } = useAuth();
+  const { showError } = useError();
+  const { isLoggedIn, user, isLoading, logout } = useAuth();
   const [screens, setScreens] = useState([]);
   const [components, setComponents] = useState({});
   const [ready, setReady] = useState(false);
+  const navigate = useNavigate();
+  const handleGoLogin = async () => { try { if (logout) await logout(); } finally { navigate('/login', { replace: true }); } };
 
   // 마지막 화면 경로를 가져오는 함수
   const getLastScreenPath = () => {
@@ -106,8 +110,9 @@ export default function App() {
   // 권한이 없는 경우
   if (isLoggedIn && ready && screens.length === 0) {
     return (
-      <div className="text-center py-10 text-gray-500">
-        현재 사용자는 권한이 없습니다. 관리자에게 문의해주세요.
+      <div className="flex flex-col items-center justify-center py-10 text-gray-600 gap-4">
+        <div>현재 사용자는 권한이 없습니다. 관리자에게 문의해주세요.</div>
+        <button onClick={handleGoLogin} className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-700 active:scale-[0.99]">로그인 화면으로 이동</button>
       </div>
     );
   }

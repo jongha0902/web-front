@@ -1,20 +1,5 @@
-import React, {
-  useCallback,
-  useImperativeHandle,
-  useRef,
-  forwardRef,
-  useState,
-  useMemo
-} from 'react';
-import ReactFlow, {
-  MiniMap,
-  Controls,
-  Background,
-  addEdge,
-  useNodesState,
-  useEdgesState,
-  Position,
-} from 'reactflow';
+import React, { useCallback, useImperativeHandle, useRef, forwardRef, useState, useMemo } from 'react';
+import ReactFlow, { MiniMap, Controls, Background, addEdge, useNodesState, useEdgesState, Position } from 'reactflow';
 import 'reactflow/dist/style.css';
 import { nanoid } from 'nanoid';
 import { EdgeColorModal, CustomGroup, SquareNode, CircleNode, ConditionNode, TableNode } from './CustomNodes';
