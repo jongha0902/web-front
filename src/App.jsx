@@ -28,7 +28,7 @@ function PrivateLayout({ children, title }) {
         <Suspense>
           <Header title={title} />
         </Suspense>
-        <main className="flex-1 p-6">
+        <main className="flex-1 p-6 overflow-hidden flex flex-col min-h-0">
           {children}
         </main>
       </div>
