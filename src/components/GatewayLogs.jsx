@@ -41,11 +41,13 @@ export default function GatewayLogs() {
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
 
-  // 끝: 현재 시각
-  const now = new Date();
+  // 종료: 내일 00:00
+  const todayEnd = new Date(todayStart);
+  todayEnd.setDate(todayEnd.getDate() + 1);
+
 
   const [searchDateStart, setSearchDateStart] = useState(formatDateTimeLocal(todayStart));
-  const [searchDateEnd, setSearchDateEnd] = useState(formatDateTimeLocal(now));
+  const [searchDateEnd, setSearchDateEnd] = useState(formatDateTimeLocal(todayEnd));
 
   // 통합 상세모달
   const [modalLog, setModalLog] = useState(null);

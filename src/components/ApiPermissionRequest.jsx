@@ -60,7 +60,7 @@ const ApiPermissionRequest = () => {
   };
 
   const filteredApiList = apiList.filter(api => {
-    const perm = permissionList.find(p => p.api_id === api.id);
+    const perm = permissionList.find(p => p.api_id === api.id && p.method === api.method);
     const isPermitted = perm?.has_permission === 1 || perm?.request_status === 'PENDING';
     const matchesMethod = methodFilter === 'ALL' || api.method === methodFilter;
     return !isPermitted && matchesMethod;
@@ -105,6 +105,7 @@ const ApiPermissionRequest = () => {
     try {
       const payload = {
         api_id: selectedApi.id,
+        method: selectedApi.method,
         reason,
       };
       const res = await api.post(`/apim/api-permission-requests/${user.user_id}`, payload);
@@ -312,7 +313,7 @@ const ApiPermissionRequest = () => {
               <tbody>
                 {sortedData.length > 0 ? (
                   sortedData.map((item, idx) => (
-                    <tr key={item.api_id} className="hover:bg-gray-50">
+                    <tr key={`${item.api_id}-${item.method}`} className="hover:bg-gray-50">
                       <td className="border px-3 py-2">{idx + 1}</td>
                       <td className="border px-3 py-2">{item.api_id}</td>
                       <td className="border px-3 py-2 text-left truncate" title={item.api_name}>{item.api_name}</td>

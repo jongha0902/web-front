@@ -1,12 +1,13 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { createContext, useContext, useState, useCallback } from 'react';
 
 const ErrorContext = createContext();
 
 export function ErrorProvider({ children }) {
   const [errorMessage, setErrorMessage] = useState('');
 
-  const showError = (msg) => setErrorMessage(msg);
-  const hideError = () => setErrorMessage('');
+  // useCallback을 사용하여 함수가 재생성되지 않도록 수정
+  const showError = useCallback((msg) => setErrorMessage(msg), []);
+  const hideError = useCallback(() => setErrorMessage(''), []);
 
   return (
     <ErrorContext.Provider value={{ errorMessage, showError, hideError }}>

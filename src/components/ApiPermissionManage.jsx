@@ -79,7 +79,7 @@ const UserApiPermissionManager = () => {
   const requestParamInit = () => {
     setRequestUserId('');
     setRequestMethod('ALL'); 
-    setRequestSelectedApi(null);  // ✅ 이 줄이 중요
+    setRequestSelectedApi(null);
     setRequestPath('');
     setRequestDateStart(formatDate(sevenDaysAgo)); 
     setRequestDateEnd(formatDate(today));
@@ -95,6 +95,7 @@ const UserApiPermissionManager = () => {
         getRequestApiList();
       }else{
         getPendingRequestCount();
+        if(selectedUser) fetchApiListWithPermissions(selectedUser.user_id);
       }
       return toggle;
     });
@@ -214,7 +215,7 @@ const UserApiPermissionManager = () => {
     try {
       const res = await api.get(`/apim/api-permissions/${userId}`);
       setApiList(res.data.permissionList || []);
-      setUserPermissions(new Set(res.data.permissionList.filter(p => p.has_permission).map(p => p.api_id)));
+      setUserPermissions(new Set(res.data.permissionList.filter(p => p.has_permission).map(p => `${p.api_id}-${p.method}`)));
     } catch (e) {
       const message = e.response?.data?.message || e.message || '오류';
       const detail = e.response?.data?.detail ? ` (${e.response.data.detail})` : '';
@@ -222,21 +223,43 @@ const UserApiPermissionManager = () => {
     }
   };
 
-  const handleCheckboxChange = (apiId) => {
+  const handleCheckboxChange = (apiId, method) => {
     setUserPermissions((prev) => {
       const newSet = new Set(prev);
-      if (newSet.has(apiId)) newSet.delete(apiId);
-      else newSet.add(apiId);
+      if (newSet.has(`${apiId}-${method}`)) newSet.delete(`${apiId}-${method}`);
+      else newSet.add(`${apiId}-${method}`);
       return newSet;
     });
   };
 
   const savePermissions = async () => {
     try {
+      // 1. Set을 배열로 변환: ["LLM_RAG-GET", "OTHER-API-POST", ...]
+      const permissionStrings = Array.from(userPermissions);
+
+      // 2. map을 사용해 각 문자열을 { api_id, method } 객체로 변환
+      const permissionsPayload = permissionStrings.map(permString => {
+        // 마지막 하이픈(-)의 위치를 찾음
+        const lastHyphenIndex = permString.lastIndexOf('-');
+
+        // 만약 하이픈이 없다면(비정상 데이터) null 반환
+        if (lastHyphenIndex === -1) return null; 
+
+        // 하이픈 앞부분을 api_id로, 뒷부분을 method로 분리
+        const api_id = permString.substring(0, lastHyphenIndex);
+        const method = permString.substring(lastHyphenIndex + 1);
+
+        return { api_id, method };
+      }).filter(Boolean); // 혹시 모를 null 값 제거
+
+      // 3. 분리된 객체 배열을 서버로 전송
       await api.post(`/apim/api-permissions/${selectedUser.user_id}`, {
-        api_ids: Array.from(userPermissions),
+        permissions: permissionsPayload, // 백엔드 명세에 맞는 key 이름 사용
       });
+      
       showMessage('✅ 권한이 저장되었습니다.');
+      getPendingRequestCount();
+      fetchApiListWithPermissions(selectedUser.user_id);
     } catch (e) {
       const message = e.response?.data?.message || e.message || '오류';
       const detail = e.response?.data?.detail ? ` (${e.response.data.detail})` : '';
@@ -446,14 +469,14 @@ const UserApiPermissionManager = () => {
                           type="checkbox"
                           checked={
                             filteredApiList.length > 0 &&
-                            filteredApiList.every(api => userPermissions.has(api.api_id))
+                            filteredApiList.every(api => userPermissions.has(`${api.api_id}-${api.method}`))
                           }
                           onChange={(e) => {
                             const newSet = new Set(userPermissions);
                             if (e.target.checked) {
-                              filteredApiList.forEach(api => newSet.add(api.api_id));
+                              filteredApiList.forEach(api => newSet.add(`${api.api_id}-${api.method}`));
                             } else {
-                              filteredApiList.forEach(api => newSet.delete(api.api_id));
+                              filteredApiList.forEach(api => newSet.delete(`${api.api_id}-${api.method}`));
                             }
                             setUserPermissions(newSet);
                           }}
@@ -468,7 +491,7 @@ const UserApiPermissionManager = () => {
                 <tbody>
                   {filteredApiList.length > 0 ? (
                     filteredApiList.map((api, index) => (
-                      <tr key={api.api_id} className="hover:bg-gray-100">
+                      <tr key={`${api.api_id}-${api.method}`} className="hover:bg-gray-100">
                         <td className="border px-3 py-2">{index + 1}</td>
                         <td className="border px-3 py-2 text-left truncate">{api.api_id}</td>
                         <td className="border px-3 py-2 text-left truncate">{api.api_name}</td>
@@ -477,8 +500,8 @@ const UserApiPermissionManager = () => {
                         <td className="border px-3 py-2">
                           <input
                             type="checkbox"
-                            checked={userPermissions.has(api.api_id)}
-                            onChange={() => handleCheckboxChange(api.api_id)}
+                            checked={userPermissions.has(`${api.api_id}-${api.method}`)}
+                            onChange={() => handleCheckboxChange(api.api_id, api.method)}
                           />
                         </td>
                       </tr>

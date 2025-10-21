@@ -64,7 +64,11 @@ export default function ApiList() {
           showMessage("API_ID는 필수입니다."); 
           return;
         }
-        res = await api.put(`/apim/api/${editTarget.api_id}`, { ...form, flow_data: JSON.stringify(flow) });
+        if (isEmpty(editTarget.method)) {
+          showMessage("API Method는 필수입니다."); 
+          return;
+        }
+        res = await api.put(`/apim/api/${editTarget.method}/${editTarget.api_id}`, { ...form, flow_data: JSON.stringify(flow) });
         // ✅ 저장된 내용을 유지해서 바로 보여주기
         const updatedTarget = {
           ...form,
@@ -95,7 +99,7 @@ export default function ApiList() {
         return;
       }
 
-      let res = await api.delete(`/apim/api/${editTarget.api_id}`);
+      let res = await api.delete(`/apim/api/${editTarget.method}/${editTarget.api_id}`);
 
       if(res.status === 200){
         fetchApiList(); 
@@ -215,7 +219,7 @@ export default function ApiList() {
               </thead>
               <tbody>
                 {apiList.length > 0 ? apiList.map((api, i) => (
-                  <tr key={api.api_id || i} className="hover:bg-blue-100 cursor-pointer"
+                  <tr key={`${api.api_id}-${api.method}` || i} className="hover:bg-blue-100 cursor-pointer"
                     onClick={() => {
                       setForm(api);
                       setEditTarget(api);
@@ -322,8 +326,8 @@ export default function ApiList() {
                 <div className="flex items-center">
                   <label className="w-20 text-gray-700">Method</label>
                   <select
-                    className={`flex-1 px-3 py-2 rounded ${modalType === 'view' ? 'bg-gray-100 text-gray-700 border-none' : 'border border-gray-300'}`}
-                    disabled={modalType === 'view'}
+                    className={`flex-1 px-3 py-2 rounded ${modalType === 'view' || modalType === 'edit' ? 'bg-gray-100 text-gray-700 border-none' : 'border border-gray-300'}`}
+                    disabled={modalType === 'view' || modalType === 'edit'}
                     value={form.method}
                     onChange={e => setForm({ ...form, method: e.target.value })}
                   >
