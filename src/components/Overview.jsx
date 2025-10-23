@@ -46,30 +46,47 @@ export default function Overview() {
   useEffect(() => {
     const fetchOverviewData = async () => {
       try {
-        const res = await api.get('/apim/overview/stats');
-        const data = res.data;
 
+        const res = await api.get(
+          "apim/overview/stats",
+          { // Axios Request Config
+            headers: {
+              'X-Skip-Global-Loading': 'true' // 로딩 건너뛰기 헤더
+            }
+          });
+
+        const data = res.data;
+  
         setStats({
           totalApis: data.totalApis || 0,
           totalApiKeys: data.totalApiKeys || 0,
           totalCalls: data.totalCalls || 0,
           todayCalls: data.todayCalls || 0,
         });
-
+  
         setChartData(data.dailyStats || []);
         setErrorChartData(data.dailyErrors || []);
         setTopApis(data.topApis || []);
         setPendingRequests(data.pendingRequests || 0);
         setRecentErrors(data.recentErrors || []);
-
       } catch (e) {
         const message = e.response?.data?.message || e.message || '데이터 로딩 중 오류가 발생했습니다.';
         showError(`❌ ${message}`);
       }
     };
-
+  
+    // 처음 실행
     fetchOverviewData();
+  
+    // 1분마다 반복 실행
+    const intervalId = setInterval(fetchOverviewData, 60 * 1000);
+  
+    // 컴포넌트 언마운트 시 인터벌 정리
+    return () => {
+      clearInterval(intervalId);
+    };
   }, []);
+  
   
   const chartOptions = {
     responsive: true,
@@ -217,89 +234,115 @@ export default function Overview() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 많이 호출된 API TOP 5 */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
-          <div className="flex items-center border-b border-gray-200 pb-3 mb-4">
+          {/* 상단 타이틀 */}
+          <div className="flex items-center border-b border-gray-200 pb-3">
             <TrendingUp className="w-6 h-6 mr-3 text-green-500" />
-            <h3 className="text-lg font-bold text-gray-800">많이 호출된 API TOP 5</h3>
+            <h3 className="text-lg font-bold text-gray-800">금일 호출 API TOP 5</h3>
           </div>
-          <div className="overflow-hidden">
-            <table className="w-full text-sm text-center">
-              <thead className="text-xs text-gray-600" style={{backgroundColor: 'rgb(215 236 251)'}}>
-                <tr>
-                  <th scope="col" className="px-3 py-2 w-16">순위</th>
-                  <th scope="col" className="px-3 py-2">API</th>
-                  <th scope="col" className="px-3 py-2 w-24">Method</th>
-                  <th scope="col" className="px-3 py-2 w-28">호출 횟수</th>
-                </tr>
-              </thead>
-              <tbody>
-                {/* 항상 5개의 행 */}
-                {Array.from({ length: 5 }).map((_, i) => {
-                  const api = topApis[i];
-                  return (
-                    <tr key={i} className={`bg-white ${api ? 'hover:bg-gray-50' : ''}`}>
-                      {/* 순위 */}
-                      <td className="px-3 py-1 text-gray-500">{i + 1}</td>
-                      {/* API (ID - 이름) */}
-                      <td className="px-3 py-1 text-left">
-                        {api ? (
-                          <div className="text-sm text-gray-500 truncate" title={`${api.api_id} - ${api.api_name}`}>{api.api_id} - {api.api_name}</div>
-                        ) : (
-                          <div className="text-sm text-gray-400">-</div>
-                        )}
-                      </td>
-                      {/* 메서드 */}
-                      <td className="px-3 py-1">
-                        {api ? (
-                          <span className="px-2 py-0.5 font-mono font-semibold text-blue-600">{api.method}</span>
-                        ) : (
-                          <span className="text-gray-400">-</span>
-                        )}
-                      </td>
-                      {/* 호출 횟수 */}
-                      <td className={`px-3 py-1 font-semibold text-center ${api ? 'text-green-600' : 'text-gray-400'}`}>
-                        {api ? api.count.toLocaleString() : '-'}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+
+          {/* 헤더 */}
+          <div className="flex items-center py-2 text-xs font-semibold text-gray-700 border-b border-gray-100 mb-2 text-center">
+            <div className="w-5">#</div>
+            <div className="w-20">Method</div>
+            <div className="flex-1 pl-2">API</div>
+            <div className="w-[100px]">호출 수</div>
+          </div>
+
+          {/* 리스트 */}
+          <div className="space-y-2">
+            {Array.from({ length: 5 }).map((_, i) => {
+              const api = topApis[i];
+              const maxCount = Math.max(...topApis.map(api => api?.count || 0));
+              const percent = api ? (api.count / maxCount) * 100 : 0;
+
+              return (
+                <div key={i} className="flex items-center font-mono font-semibold">
+                  {/* 순위 */}
+                  <div className="w-5 text-center text-gray-500 text-sm">{i + 1}</div>
+
+                  {/* Method */}
+                  <div className="w-20 text-center">
+                    {api ? (
+                      <span className="inline-block px-2 pb-0.5 rounded text-blue-600 text-sm">
+                        {api.method}
+                      </span>
+                    ) : (
+                      <span className="text-gray-500">-</span>
+                    )}
+                  </div>
+
+                  {/* API 막대 + 이름 */}
+                  <div className="flex-1 relative h-7 bg-gray-100 rounded-full overflow-hidden">
+                    {api && (
+                      <div
+                        className="absolute top-0 left-0 h-full bg-gradient-to-r from-sky-100 to-sky-200 transition-all duration-500 rounded-full"
+                        style={{ width: `${percent}%` }}
+                      />
+                    )}
+                    <div className="relative z-10 h-full flex items-center px-3 font-semibold">
+                      <span className="text-xs truncate w-full text-gray-500" title={api ? `${api.api_id} - ${api.api_name}` : ''}>
+                        {api ? `${api.api_id} - ${api.api_name}` : '-'}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* 호출 수 */}
+                  <div className="w-[100px] text-center text-gray-500 ml-2">
+                    {api ? `${api.count.toLocaleString()}` : '-'}
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* 최근 오류 발생 로그 */}
-        <div className="bg-white p-6 rounded-lg shadow-sm flex flex-col">
-          <div className="flex items-center border-b border-gray-200 pb-3 mb-4">
+
+        {/* 금일 오류 발생 로그 */}
+        <div className="bg-white p-6 rounded-lg shadow-sm">
+          {/* 상단 타이틀 */}
+          <div className="flex items-center border-b border-gray-200 pb-3">
             <Ban className="w-6 h-6 mr-3 text-red-500" />
-            <h3 className="text-lg font-bold text-gray-800">최근 오류 발생 로그</h3>
+            <h3 className="text-lg font-bold text-gray-800">금일 오류 발생 로그</h3>
           </div>
-          <div className="flex-1 overflow-y-auto" style={{ maxHeight: '200px' }}>
-            <table className="w-full text-sm text-center">
-              <thead className="sticky top-0 z-10 text-xs text-gray-600 font-semibold" style={{backgroundColor: 'rgb(215 236 251)'}}>
-                  <tr>
-                      <th scope="col" className="px-4 py-2 w-[200px]">시간</th>
-                      <th scope="col" className="px-4 py-2">API</th>
-                      <th scope="col" className="px-4 py-2">Method</th>
-                      <th scope="col" className="px-4 py-2">상태</th>
-                  </tr>
-              </thead>
-              <tbody>
-                  {recentErrors.length > 0 ? recentErrors.map((error, i) => (
-                  <tr key={i} className="bg-white border-b hover:bg-red-50">
-                      <td className="px-4 py-2 text-gray-600">{error.time}</td>
-                      <td className="px-4 py-2 text-gray-600 truncate text-left" title={`${error.api_id} - ${error.api_name}`}>{error.api_id} - {error.api_name}</td>
-                      <td className="px-4 py-2 font-mono font-semibold text-blue-600">{error.method}</td>
-                      <td className="px-4 py-2 font-mono font-semibold text-red-700">{error.status_code}</td>
-                  </tr>
-                  )) : (
-                  <tr>
-                      <td colSpan="4" className="py-10 text-gray-400">
-                      최근 오류 내역이 없습니다.
-                      </td>
-                  </tr>
-                  )}
-              </tbody>
-            </table>
+
+          {/* 헤더 */}
+          <div className="flex items-center py-2 text-xs font-semibold text-gray-700 border-b border-gray-100 text-center">
+            <div className="w-[200px]">시간</div>
+            <div className="w-[80px]">상태</div>
+            <div className="w-20">Method</div>
+            <div className="flex-1 pl-2">API</div>
+          </div>
+
+          {/* 리스트 */}
+          <div className="space-y-2 mt-2 max-h-[180px] overflow-y-auto">
+            {recentErrors.length > 0 ? recentErrors.map((error, i) => (
+              <div key={i} className="flex items-center font-mono text-sm py-1 rounded hover:bg-red-50">
+                {/* 시간 */}
+                <div className="w-[200px] text-gray-600 text-center">{error.time}</div>
+                
+                {/* 상태 코드 */}
+                <div className="w-[80px] text-center font-semibold text-red-700">
+                  {error.status_code}
+                </div>
+
+                {/* Method */}
+                <div className="w-20 text-center">
+                  <span className="inline-block px-2 pb-0.5 text-blue-600 text-sm font-semibold">
+                    {error.method}
+                  </span>
+                </div>
+
+                {/* API 이름 */}
+                <div className="flex-1 pl-2 truncate text-gray-600 text-sm font-semibold" title={`${error.api_id} - ${error.api_name}`}>
+                  {`${error.api_id} - ${error.api_name}`}
+                </div>
+
+              </div>
+            )) : (
+              <div className="text-center text-sm text-gray-400 py-10">
+                최근 오류 내역이 없습니다.
+              </div>
+            )}
           </div>
         </div>
       </div>

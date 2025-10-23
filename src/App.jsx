@@ -24,11 +24,11 @@ function PrivateLayout({ children, title }) {
       </Suspense>
   
       {/* 오른쪽 콘텐츠 영역: 화면 넘침 방지 */}
-      <div className="flex flex-col flex-1 max-w-full overflow-x-auto">
+      <div className="flex flex-col flex-1 max-w-full overflow-x-auto min-h-0">
         <Suspense>
           <Header title={title} />
         </Suspense>
-        <main className="flex-1 p-6 overflow-hidden flex flex-col min-h-0">
+        <main className="flex-1 p-6 flex flex-col min-h-0">
           {children}
         </main>
       </div>

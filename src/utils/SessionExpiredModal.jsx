@@ -26,7 +26,7 @@ const showSessionExpiredModal = (message = '세션이 만료되었습니다.\n�
   
         {/* 본문 영역 */}
         <div className="px-8 py-6">
-          <p className="text-gray-600 text-sm whitespace-pre-line leading-relaxed mb-6">
+          <p className="text-gray-600 text-sm font-bold whitespace-pre-line leading-relaxed mb-6">
             {message}
           </p>
           <button
