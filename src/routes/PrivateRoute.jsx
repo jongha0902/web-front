@@ -1,15 +1,17 @@
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useAuth } from '../store/Auth';
 import { useError } from '../utils/ErrorContext';
+import { useMessage } from '../utils/MessageContext';
 import { useEffect, useState } from 'react';
 import useSessionStore from '@/utils/useSessionStore';
 
 const RedirectWithError = () => {
   const { showError } = useError();
+  const { showMessage } = useMessage();
   const [redirect, setRedirect] = useState(false);
 
   useEffect(() => {
-    showError('⛔ 로그인 후 접근 가능한 페이지입니다.');
+    showMessage('로그인 후 접근 가능한 페이지입니다.');
     const timeout = setTimeout(() => setRedirect(true), 1000);
     return () => clearTimeout(timeout);
   }, []);

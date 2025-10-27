@@ -71,13 +71,13 @@ export default function GatewayLogs() {
   const fetchLogs = async () => {
     if (!isValidDateTimeLocal(searchDateStart) || !isValidDateTimeLocal(searchDateEnd)) {
       showMessage('📅 날짜는 YYYY-MM-DDTHH:MM 형식으로 입력해주세요.');
-      return;
+      return false;
     }
     const start = new Date(searchDateStart);
     const end = new Date(searchDateEnd);
     if (start > end) {
       showMessage('🚫 조회 시작은 조회 종료보다 이전이어야 합니다.');
-      return;
+      return false;
     }
 
     try {

@@ -1,162 +1,134 @@
--- 권한 관리 시스템 DB 스키마
+CREATE TABLE IF NOT EXISTS api_keys (
+    user_id TEXT PRIMARY KEY,
+    api_key TEXT UNIQUE NOT NULL,
+    comment TEXT,
+    generate_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    generate_id TEXT,
+    regenerate_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    regenerate_id TEXT
+);
 
--- 1. 권한 종류 테이블
-CREATE TABLE permission_types (
+CREATE TABLE IF NOT EXISTS api_list (
+    api_id TEXT NOT NULL,
+    api_name TEXT NOT NULL,
+    path TEXT NOT NULL,
+    method TEXT NOT NULL, -- NOT NULL 추가
+    use_yn TEXT DEFAULT 'Y' NOT NULL,
+    description TEXT,
+    flow_data TEXT,
+    write_id TEXT,
+    write_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_id TEXT,
+    update_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (api_id, method) 
+);
+
+CREATE TABLE IF NOT EXISTS api_permission_requests (
+    request_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    api_id INTEGER NOT NULL,
+    method TEXT NOT NULL,
+    status TEXT DEFAULT ('PENDING'),
+    memo TEXT CHECK (length(memo) <= 255),
+    request_date TEXT DEFAULT (datetime('now', 'localtime')),
+    response_date TEXT,
+    response_id TEXT
+);
+
+CREATE TABLE IF NOT EXISTS api_permissions (
+    api_id TEXT NOT NULL,
+    method TEXT NOT NULL,
+    user_id TEXT NOT NULL,
+    create_id TEXT,
+    create_date TEXT DEFAULT (datetime('now')),
+    update_id TEXT,
+    update_date TEXT DEFAULT (datetime('now')),
+    CONSTRAINT API_PERMISSIONS_PK PRIMARY KEY (api_id, method, user_id)
+);
+
+CREATE TABLE IF NOT EXISTS api_usage_log (
+    log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT NOT NULL,
+    path TEXT NOT NULL,
+    method TEXT NOT NULL,
+    request_time TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    request_data TEXT,
+    response_data TEXT,
+    status_code INTEGER
+);
+CREATE INDEX IF NOT EXISTS api_usage_log_path_IDX ON api_usage_log (path, user_id, method, request_time);
+
+                
+CREATE TABLE IF NOT EXISTS gateway_logs (
+    log_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id TEXT,                -- 요청자 ID (API 키 인증 결과)
+    api_id TEXT,                 -- 호출된 API 코드 (ex. "RAG", "BID_INFO")
+    method TEXT NOT NULL,        -- HTTP 메서드 (GET, POST 등)
+    path TEXT NOT NULL,          -- 실제 호출된 경로 (ex. /rag, /bid-info)
+    query_param TEXT,            -- Query string (key=value&key2=value2 ...)
+    headers TEXT,                -- 요청 헤더 (JSON 직렬화)
+    body TEXT,                   -- 요청 바디 (JSON 또는 raw string)
+    status_code INTEGER,         -- 응답 상태 코드 (200, 403 등)
+    response TEXT,               -- 응답 내용 (JSON 직렬화 또는 에러 메시지)
+    requested_at TIMESTAMP NOT NULL,  -- 요청 시간 (ISO timestamp)
+    responded_at TIMESTAMP NOT NULL,  -- 응답 시간 (ISO timestamp)
+    latency_ms INTEGER,          -- 요청~응답 간 지연 시간(ms)
+    client_ip TEXT,              -- 클라이언트 IP
+    user_agent TEXT,             -- User-Agent 헤더
+    is_success TEXT NOT NULL,    -- 'Y' (성공), 'N' (실패)
+    error_message TEXT           -- 에러 메시지 (예외 발생 시)
+);
+
+CREATE TABLE IF NOT EXISTS permission_screen_map (
+    permission_code TEXT,
+    screen_code TEXT,
+    create_id TEXT,
+    create_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (permission_code, screen_code)
+);
+
+CREATE TABLE IF NOT EXISTS "screen_permissions" (
+    permission_code TEXT,
+    screen_code TEXT,
+    create_id TEXT,
+    create_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (permission_code, screen_code)
+);
+
+CREATE TABLE IF NOT EXISTS screens (
+    screen_code TEXT PRIMARY KEY,
+    screen_name TEXT NOT NULL,
+    screen_path TEXT NOT NULL,
+    component_name TEXT NOT NULL,
+    use_yn TEXT(1) DEFAULT ('N') NOT NULL,
+    description TEXT,
+    create_id TEXT,
+    create_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    update_id TEXT,
+    update_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP, 
+    menu_order INTEGER DEFAULT NULL
+);
+
+CREATE TABLE IF NOT EXISTS user_permission_types (
     permission_code VARCHAR(50) PRIMARY KEY,
     permission_name VARCHAR(100) NOT NULL,
+    use_yn CHAR(1) DEFAULT 'Y' CHECK (use_yn IN ('Y', 'N')),
     description TEXT,
-    use_yn CHAR(1) DEFAULT 'Y' CHECK (use_yn IN ('Y', 'N')),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    create_id TEXT,
+    create_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_id TEXT,
+    update_date DATETIME DEFAULT CURRENT_TIMESTAMP
 );
 
--- 2. 사용자 테이블 (기존 테이블이 있다면 참고용)
-CREATE TABLE users (
-    user_id VARCHAR(50) PRIMARY KEY,
-    user_name VARCHAR(100) NOT NULL,
-    email VARCHAR(200),
-    password_hash VARCHAR(255),
-    use_yn CHAR(1) DEFAULT 'Y' CHECK (use_yn IN ('Y', 'N')),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE IF NOT EXISTS users (
+    user_id TEXT PRIMARY KEY,
+    password TEXT NOT NULL,
+    user_name TEXT NOT NULL,
+    permission_code TEXT DEFAULT 'user',
+    use_yn TEXT DEFAULT 'Y',
+    create_id TEXT,
+    create_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    update_id TEXT,
+    update_date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    refresh_token TEXT
 );
-
--- 3. 사용자 권한 매핑 테이블
-CREATE TABLE user_permissions (
-    user_permission_id SERIAL PRIMARY KEY,
-    user_id VARCHAR(50) NOT NULL,
-    permission_code VARCHAR(50) NOT NULL,
-    granted_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    granted_by VARCHAR(50),
-    FOREIGN KEY (user_id) REFERENCES users(user_id) ON DELETE CASCADE,
-    FOREIGN KEY (permission_code) REFERENCES permission_types(permission_code) ON DELETE CASCADE,
-    UNIQUE(user_id, permission_code)
-);
-
--- 4. 화면 테이블 (기존 테이블이 있다면 참고용)
-CREATE TABLE screens (
-    screen_id SERIAL PRIMARY KEY,
-    screen_path VARCHAR(200) UNIQUE NOT NULL,
-    screen_name VARCHAR(100) NOT NULL,
-    description TEXT,
-    use_yn CHAR(1) DEFAULT 'Y' CHECK (use_yn IN ('Y', 'N')),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
--- 5. 화면 권한 매핑 테이블
-CREATE TABLE screen_permissions (
-    screen_permission_id SERIAL PRIMARY KEY,
-    screen_id INTEGER NOT NULL,
-    permission_code VARCHAR(50) NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (screen_id) REFERENCES screens(screen_id) ON DELETE CASCADE,
-    FOREIGN KEY (permission_code) REFERENCES permission_types(permission_code) ON DELETE CASCADE,
-    UNIQUE(screen_id, permission_code)
-);
-
--- 인덱스 생성
-CREATE INDEX idx_permission_types_use_yn ON permission_types(use_yn);
-CREATE INDEX idx_users_use_yn ON users(use_yn);
-CREATE INDEX idx_user_permissions_user_id ON user_permissions(user_id);
-CREATE INDEX idx_user_permissions_permission_code ON user_permissions(permission_code);
-CREATE INDEX idx_screen_permissions_screen_id ON screen_permissions(screen_id);
-CREATE INDEX idx_screen_permissions_permission_code ON screen_permissions(permission_code);
-
--- 샘플 데이터 삽입
-INSERT INTO permission_types (permission_code, permission_name, description, use_yn) VALUES
-('ADMIN', '관리자', '시스템 전체 관리 권한', 'Y'),
-('USER_MANAGE', '사용자 관리', '사용자 정보 관리 권한', 'Y'),
-('PERMISSION_MANAGE', '권한 관리', '권한 설정 관리 권한', 'Y'),
-('SCREEN_MANAGE', '화면 관리', '화면 접근 권한 관리', 'Y'),
-('API_MANAGE', 'API 관리', 'API 접근 권한 관리', 'Y'),
-('REPORT_VIEW', '보고서 조회', '보고서 조회 권한', 'Y'),
-('DATA_EXPORT', '데이터 내보내기', '데이터 내보내기 권한', 'Y');
-
--- 샘플 사용자 데이터 (비밀번호는 실제 환경에서 해시화 필요)
-INSERT INTO users (user_id, user_name, email, use_yn) VALUES
-('admin', '관리자', 'admin@example.com', 'Y'),
-('user1', '사용자1', 'user1@example.com', 'Y'),
-('user2', '사용자2', 'user2@example.com', 'Y'),
-('manager', '매니저', 'manager@example.com', 'Y');
-
--- 샘플 화면 데이터
-INSERT INTO screens (screen_path, screen_name, description, use_yn) VALUES
-('/dashboard', '대시보드', '메인 대시보드 화면', 'Y'),
-('/users', '사용자 관리', '사용자 목록 및 관리', 'Y'),
-('/permissions', '권한 관리', '권한 설정 관리', 'Y'),
-('/screens', '화면 관리', '화면 접근 권한 관리', 'Y'),
-('/reports', '보고서', '보고서 조회', 'Y'),
-('/api-permissions', 'API 권한 관리', 'API 접근 권한 관리', 'Y'),
-('/user-permissions', '사용자 권한 관리', '사용자별 권한 관리', 'Y');
-
--- 샘플 사용자 권한 매핑
-INSERT INTO user_permissions (user_id, permission_code) VALUES
-('admin', 'ADMIN'), -- admin에게 ADMIN 권한
-('admin', 'USER_MANAGE'), -- admin에게 USER_MANAGE 권한
-('admin', 'PERMISSION_MANAGE'), -- admin에게 PERMISSION_MANAGE 권한
-('manager', 'USER_MANAGE'), -- manager에게 USER_MANAGE 권한
-('manager', 'REPORT_VIEW'), -- manager에게 REPORT_VIEW 권한
-('user1', 'REPORT_VIEW'), -- user1에게 REPORT_VIEW 권한
-('user2', 'REPORT_VIEW'); -- user2에게 REPORT_VIEW 권한
-
--- 샘플 화면 권한 매핑
-INSERT INTO screen_permissions (screen_id, permission_code) VALUES
-(1, 'ADMIN'), -- 대시보드는 ADMIN 권한 필요
-(2, 'USER_MANAGE'), -- 사용자 관리는 USER_MANAGE 권한 필요
-(3, 'PERMISSION_MANAGE'), -- 권한 관리는 PERMISSION_MANAGE 권한 필요
-(4, 'SCREEN_MANAGE'), -- 화면 관리는 SCREEN_MANAGE 권한 필요
-(5, 'REPORT_VIEW'), -- 보고서는 REPORT_VIEW 권한 필요
-(6, 'API_MANAGE'), -- API 권한 관리는 API_MANAGE 권한 필요
-(7, 'PERMISSION_MANAGE'); -- 사용자 권한 관리는 PERMISSION_MANAGE 권한 필요
-
--- 뷰 생성 (자주 사용되는 조회를 위한 뷰)
-CREATE VIEW user_permission_view AS
-SELECT 
-    u.user_id,
-    u.user_name,
-    u.email,
-    u.use_yn as user_use_yn,
-    pt.permission_code,
-    pt.permission_name,
-    pt.description as permission_description,
-    pt.use_yn as permission_use_yn,
-    up.granted_at
-FROM users u
-LEFT JOIN user_permissions up ON u.user_id = up.user_id
-LEFT JOIN permission_types pt ON up.permission_code = pt.permission_code
-WHERE u.use_yn = 'Y' AND pt.use_yn = 'Y';
-
-CREATE VIEW screen_permission_view AS
-SELECT 
-    s.screen_id,
-    s.screen_path,
-    s.screen_name,
-    s.description as screen_description,
-    s.use_yn as screen_use_yn,
-    pt.permission_code,
-    pt.permission_name,
-    pt.description as permission_description,
-    pt.use_yn as permission_use_yn
-FROM screens s
-LEFT JOIN screen_permissions sp ON s.screen_id = sp.screen_id
-LEFT JOIN permission_types pt ON sp.permission_code = pt.permission_code
-WHERE s.use_yn = 'Y' AND pt.use_yn = 'Y';
-
--- 트리거 생성 (updated_at 자동 업데이트)
-CREATE OR REPLACE FUNCTION update_updated_at_column()
-RETURNS TRIGGER AS $$
-BEGIN
-    NEW.updated_at = CURRENT_TIMESTAMP;
-    RETURN NEW;
-END;
-$$ language 'plpgsql';
-
-CREATE TRIGGER update_permission_types_updated_at BEFORE UPDATE ON permission_types
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_users_updated_at BEFORE UPDATE ON users
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
-
-CREATE TRIGGER update_screens_updated_at BEFORE UPDATE ON screens
-    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); 

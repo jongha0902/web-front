@@ -81,9 +81,9 @@ api.interceptors.response.use(
     const originalRequest = error.config;
 
     // refresh 요청 자체는 제외
-    if (originalRequest?.url?.includes('/apim/auth/refresh')) {
-      return Promise.reject(error);
-    }
+    // if (originalRequest?.url?.includes('/apim/auth/refresh')) {
+    //   return Promise.reject(error);
+    // }
 
     // 세션 만료 (419) → refresh 시도
     if (status === 419) {

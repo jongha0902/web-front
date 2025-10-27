@@ -21,12 +21,12 @@ export default function MessageModal() {
         </div>
   
         {/* 푸터 */}
-        <div className="px-5 py-2 border-t flex justify-end">
+        <div className="px-4 py-2 border-t flex justify-end">
           <button
             onClick={hideMessage}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
           >
-            확인
+            닫기
           </button>
         </div>
   

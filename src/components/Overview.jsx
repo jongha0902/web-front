@@ -183,7 +183,7 @@ export default function Overview() {
   ];
 
   return (
-    <div className="space-y-6">
+    <div className="flex flex-col h-full gap-6">
       {/* --- 상단 통계 카드 --- */}
       <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
         {statCards.map(({ label, value, Icon, color, isLink, linkTo }) => (
@@ -216,16 +216,17 @@ export default function Overview() {
       </div>
 
       {/* --- 최근 7일 호출 통계 라인 차트 --- */}
-      <div className="bg-white p-6 rounded-lg shadow-sm">
+      <div className="bg-white p-6 rounded-lg shadow-sm flex-1 flex flex-col min-h-0">
         <div className="flex items-center border-b border-gray-200 pb-2 mb-4">
           <BarChart2 className="w-6 h-6 mr-3 text-blue-500" />
           <h3 className="text-lg font-bold text-gray-800">최근 7일 호출 통계</h3>
         </div>
-        <div className="relative h-60">
+        <div className="relative flex-1 min-h-0">
           {chartData.length > 0 ? (
             <Line options={chartOptions} data={chartJSData} />
           ) : (
-            <div className="h-full flex items-center justify-center text-gray-400">[차트 데이터가 없습니다]</div>
+            /* [데이터 없음] 메시지가 중앙에 오도록 h-full을 absolute/inset-0으로 변경하는 것을 권장합니다 */
+            <div className="absolute inset-0 flex items-center justify-center text-gray-400">[차트 데이터가 없습니다]</div>
           )}
         </div>
       </div>
@@ -281,7 +282,7 @@ export default function Overview() {
                     )}
                     <div className="relative z-10 h-full flex items-center px-3 font-semibold">
                       <span className="text-xs truncate w-full text-gray-500" title={api ? `${api.api_id} - ${api.api_name}` : ''}>
-                        {api ? `${api.api_id} - ${api.api_name}` : '-'}
+                        {api ? `${api.api_id} - ${api.api_name}` : ''}
                       </span>
                     </div>
                   </div>

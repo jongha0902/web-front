@@ -25,12 +25,15 @@ const showSessionExpiredModal = (message = '세션이 만료되었습니다.\n�
         </div>
   
         {/* 본문 영역 */}
-        <div className="px-8 py-6">
-          <p className="text-gray-600 text-sm font-bold whitespace-pre-line leading-relaxed mb-6">
+        <div className="px-6 py-2">
+          <p className="text-gray-600 text-sm font-bold whitespace-pre-line leading-relaxed">
             {message}
           </p>
+        </div>
+
+        <div className="px-4 py-2 border-t flex justify-end">
           <button
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg font-semibold transition"
+            className="bg-blue-600 text-white px-3 py-1 rounded hover:bg-blue-700"
             onClick={async () => {
               try {
                 await axios.post('/apim/auth/logout', null, { withCredentials: true });
@@ -43,9 +46,10 @@ const showSessionExpiredModal = (message = '세션이 만료되었습니다.\n�
               }
             }}
           >
-            확인
+            닫기
           </button>
         </div>
+
       </div>
     </div>
   );
