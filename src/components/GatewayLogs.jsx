@@ -291,57 +291,55 @@ export default function GatewayLogs() {
           </select>
         </div>
 
-        <div className="flex-1 overflow-hidden">
-          <div className="overflow-y-auto max-h-[550px] border-t">
-            <table className="w-full text-sm border text-center table-fixed">
-              <thead className="bg-gray-50 sticky top-0 z-10">
-                <tr>
-                  <th className="border px-3 py-2 w-[6%]">#</th>
-                  <th className="border px-3 py-2 w-[12%]">유저</th>
-                  <th className="border px-3 py-2 w-[14%]">API ID</th>
-                  <th className="border px-3 py-2 w-[10%]">Method</th>
-                  <th className="border px-3 py-2 w-[10%]">통신상태</th>
-                  <th className="border px-3 py-2 w-[10%]">상태코드</th>
-                  <th className="border px-3 py-2 w-[18%]">요청시간</th>
-                  <th className="border px-3 py-2 w-[18%]">응답시간</th>
-                  <th className="border px-3 py-2 w-[10%]">비고</th>
+        <div className="flex-1 overflow-y-auto border-t">
+          <table className="w-full text-sm border text-center table-fixed">
+            <thead className="bg-gray-50 sticky top-0 z-10">
+              <tr>
+                <th className="border px-3 py-2 w-[6%]">#</th>
+                <th className="border px-3 py-2 w-[12%]">유저</th>
+                <th className="border px-3 py-2 w-[14%]">API ID</th>
+                <th className="border px-3 py-2 w-[10%]">Method</th>
+                <th className="border px-3 py-2 w-[10%]">통신상태</th>
+                <th className="border px-3 py-2 w-[10%]">상태코드</th>
+                <th className="border px-3 py-2 w-[18%]">요청시간</th>
+                <th className="border px-3 py-2 w-[18%]">응답시간</th>
+                <th className="border px-3 py-2 w-[10%]">비고</th>
+              </tr>
+            </thead>
+            <tbody>
+              {logs.length > 0 ? logs.map((log, i) => (
+                <tr key={log.log_id ?? i} className="hover:bg-gray-100 align-top">
+                  <td className="border px-3 py-1">
+                    {totalCount - ((page - 1) * perPage + i)}
+                  </td>
+                  <td className="border px-3 py-1 break-words">{log.user_id || '-'}</td>
+                  <td className="border px-3 py-1 break-words">{log.api_id}</td>
+                  <td className="border px-3 py-1">{log.method}</td>
+                  <td className="border px-3 py-1">{log.is_success == "Y" ? "✅ 성공" : "❌ 실패"}</td>
+                  <td className="border px-3 py-1">{log.status_code}</td>
+                  <td className="border px-3 py-1">{log.requested_at}</td>
+                  <td className="border px-3 py-1">{log.responded_at}</td>
+                  <td className="border px-2 py-1">
+                    <button
+                      onClick={() => {setModalLog(log); 
+                                      setViewJson({ headers: true,
+                                                    query_param: true,
+                                                    body: true,
+                                                    response: true,
+                                                    error_message: true
+                                                  });
+                      }}
+                      className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded hover:bg-blue-100 text-xs"
+                    >
+                      <FileSearch size={14}/>상세보기
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {logs.length > 0 ? logs.map((log, i) => (
-                  <tr key={log.log_id ?? i} className="hover:bg-gray-100 align-top">
-                    <td className="border px-3 py-1">
-                      {totalCount - ((page - 1) * perPage + i)}
-                    </td>
-                    <td className="border px-3 py-1 break-words">{log.user_id || '-'}</td>
-                    <td className="border px-3 py-1 break-words">{log.api_id}</td>
-                    <td className="border px-3 py-1">{log.method}</td>
-                    <td className="border px-3 py-1">{log.is_success == "Y" ? "✅ 성공" : "❌ 실패"}</td>
-                    <td className="border px-3 py-1">{log.status_code}</td>
-                    <td className="border px-3 py-1">{log.requested_at}</td>
-                    <td className="border px-3 py-1">{log.responded_at}</td>
-                    <td className="border px-2 py-1">
-                      <button
-                        onClick={() => {setModalLog(log); 
-                                        setViewJson({ headers: true,
-                                                      query_param: true,
-                                                      body: true,
-                                                      response: true,
-                                                      error_message: true
-                                                    });
-                        }}
-                        className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded hover:bg-blue-100 text-xs"
-                      >
-                        <FileSearch size={14}/>상세보기
-                      </button>
-                    </td>
-                  </tr>
-                )) : (
-                  <tr><td colSpan={9} className="text-gray-500 py-6 text-center">등록된 로그가 없습니다.</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+              )) : (
+                <tr><td colSpan={9} className="text-gray-500 py-6 text-center">등록된 로그가 없습니다.</td></tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
         {/* 페이징 */}

@@ -183,9 +183,9 @@ export default function Overview() {
   ];
 
   return (
-    <div className="flex flex-col h-full gap-6">
+    <div className="flex flex-col flex-1 h-full gap-6 min-h-0">
       {/* --- 상단 통계 카드 --- */}
-      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-4">
+      <div className="grid grid-cols-5 gap-4">
         {statCards.map(({ label, value, Icon, color, isLink, linkTo }) => (
           <div key={label} className="bg-white p-3 rounded-lg shadow-sm flex flex-col justify-between">
             {/* 상단 헤더 */}
@@ -216,7 +216,7 @@ export default function Overview() {
       </div>
 
       {/* --- 최근 7일 호출 통계 라인 차트 --- */}
-      <div className="bg-white p-6 rounded-lg shadow-sm flex-1 flex flex-col min-h-0">
+      <div className="bg-white p-6 rounded-lg shadow-sm flex-1 flex flex-col min-h-0 min-h-[250px]">
         <div className="flex items-center border-b border-gray-200 pb-2 mb-4">
           <BarChart2 className="w-6 h-6 mr-3 text-blue-500" />
           <h3 className="text-lg font-bold text-gray-800">최근 7일 호출 통계</h3>
@@ -232,7 +232,7 @@ export default function Overview() {
       </div>
 
       {/* --- 추가 콘텐츠 그리드 --- */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <div className="grid grid-cols-2 gap-6">
         {/* 많이 호출된 API TOP 5 */}
         <div className="bg-white p-6 rounded-lg shadow-sm">
           {/* 상단 타이틀 */}

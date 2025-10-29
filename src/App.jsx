@@ -15,20 +15,20 @@ const Login = lazy(() => import('./components/Login'));
 
 function PrivateLayout({ children, title }) {
   const { isLoggedIn } = useAuth();
-  if (!isLoggedIn) return null;
+  if (!isLoggedIn) return null; // 로그인 안됐으면 렌더링 X
 
   return (
-    <div className="flex min-h-screen bg-gray-100">
-      <Suspense>
+    <div className="flex h-screen bg-gray-100 min-w-[1500px] overflow-auto">
+      <Suspense fallback={<div>Sidebar Loading...</div>}>
         <Sidebar />
       </Suspense>
-  
-      {/* 오른쪽 콘텐츠 영역: 화면 넘침 방지 */}
-      <div className="flex flex-col flex-1 max-w-full overflow-x-auto min-h-0">
-        <Suspense>
+
+      {/* ✅ 오른쪽 콘텐츠 영역 전체 */}
+      <div className="flex flex-col flex-1 overflow-hidden">
+        <Suspense fallback={<div>Header Loading...</div>}>
           <Header title={title} />
         </Suspense>
-        <main className="flex-1 p-6 flex flex-col min-h-0">
+        <main className="flex-1 flex flex-col overflow-auto p-6">
           {children}
         </main>
       </div>

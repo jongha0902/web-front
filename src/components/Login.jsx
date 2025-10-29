@@ -20,10 +20,10 @@ export default function Login() {
     try {
       const response = await api.post(
         '/apim/auth/login',
-        { user_id: userId, password },  // 첫 시도에는 force 없이
+        { user_id: userId, password },
         { withCredentials: true }
       );
-  
+
       if (response.status === 200 && response.data.user) {
         login(response.data);
         navigate('/', { replace: true });
@@ -61,6 +61,7 @@ export default function Login() {
       const message = e.response?.data?.message || e.message || '오류';
       const detail = e.response?.data?.detail ? ` (${e.response.data.detail})` : '';
       showError(`❌ ${message}${detail}`);
+      setError(message || '로그인 실패');
   
     }
   };
@@ -75,7 +76,7 @@ export default function Login() {
     >
       <form
         onSubmit={handleSubmit}
-        className="bg-black/80 backdrop-blur-sm shadow-2xl rounded-xl px-10 py-10 w-full max-w-sm border-gray-300"
+        className="bg-black/80 backdrop-blur-sm shadow-2xl rounded-xl px-10 py-10 w-full max-w-[25rem] border-gray-300"
       >
         <h2 className="text-2xl font-bold mb-6 text-center leading-snug text-white">
           전력거래<br />

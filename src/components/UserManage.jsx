@@ -241,48 +241,46 @@ export default function UserManage() {
           </select>
         </div>
 
-        <div className="flex-1 overflow-hidden">
-          <div className="overflow-y-auto max-h-[550px] min-w-[1200px] border-t">
-            <table className="w-full text-sm border text-center table-fixed">
-              <thead className="bg-gray-50 sticky top-0 z-10">
-                <tr>
-                  <th className="border px-3 py-1 w-[4%]">#</th>
-                  <th className="border px-3 py-1 w-[11%]">ID</th>
-                  <th className="border px-3 py-1 w-[15%]">이름</th>
-                  <th className="border px-3 py-1 w-[8%]">권한</th>
-                  <th className="border px-3 py-1 w-[5%]">사용< br/>여부</th>
-                  <th className="border px-3 py-1 w-[10%]">등록자</th>
-                  <th className="border px-3 py-1 w-[15%]">등록일</th>
-                  <th className="border px-3 py-1 w-[10%]">수정자</th>
-                  <th className="border px-3 py-1 w-[15%]">수정일</th>
-                  <th className="border px-3 py-1 w-[10%]">관리</th>
+        <div className="flex-1 overflow-y-auto border-t">
+          <table className="w-full text-sm border text-center table-fixed">
+            <thead className="bg-gray-50 sticky top-0 z-10">
+              <tr>
+                <th className="border px-3 py-1 w-[4%]">#</th>
+                <th className="border px-3 py-1 w-[11%]">ID</th>
+                <th className="border px-3 py-1 w-[15%]">이름</th>
+                <th className="border px-3 py-1 w-[8%]">권한</th>
+                <th className="border px-3 py-1 w-[5%]">사용< br/>여부</th>
+                <th className="border px-3 py-1 w-[10%]">등록자</th>
+                <th className="border px-3 py-1 w-[15%]">등록일</th>
+                <th className="border px-3 py-1 w-[10%]">수정자</th>
+                <th className="border px-3 py-1 w-[15%]">수정일</th>
+                <th className="border px-3 py-1 w-[10%]">관리</th>
+              </tr>
+            </thead>
+            <tbody>
+              {userList.length > 0 ? userList.map((u, i) => (
+                <tr key={u.user_id} className="hover:bg-gray-100">
+                  <td className="border px-3 py-1">{totalCount - ((page - 1) * perPage + i)}</td>
+                  <td className="border px-3 py-1 font-mono">{u.user_id}</td>
+                  <td className="border px-3 py-1">{u.user_name}</td>
+                  <td className="border px-3 py-1">{u.permission_name}</td>
+                  <td className="border px-3 py-1">
+                    {u.use_yn === 'Y' ? '✅' : '❌'}
+                  </td>
+                  <td className="border px-3 py-1">{u.create_id}</td>
+                  <td className="border px-3 py-1">{u.create_date}</td>
+                  <td className="border px-3 py-1">{u.update_id}</td>
+                  <td className="border px-3 py-1">{u.update_date}</td>
+                  <td className="border px-3 py-1">
+                    <button onClick={() => { setEditUser(u); setModalType('edit'); }} className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs">수정</button>
+                    <button onClick={() => openDeleteModal(u)} className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs ml-1">삭제</button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {userList.length > 0 ? userList.map((u, i) => (
-                  <tr key={u.user_id} className="hover:bg-gray-100">
-                    <td className="border px-3 py-1">{totalCount - ((page - 1) * perPage + i)}</td>
-                    <td className="border px-3 py-1 font-mono">{u.user_id}</td>
-                    <td className="border px-3 py-1">{u.user_name}</td>
-                    <td className="border px-3 py-1">{u.permission_name}</td>
-                    <td className="border px-3 py-1">
-                      {u.use_yn === 'Y' ? '✅' : '❌'}
-                    </td>
-                    <td className="border px-3 py-1">{u.create_id}</td>
-                    <td className="border px-3 py-1">{u.create_date}</td>
-                    <td className="border px-3 py-1">{u.update_id}</td>
-                    <td className="border px-3 py-1">{u.update_date}</td>
-                    <td className="border px-3 py-1">
-                      <button onClick={() => { setEditUser(u); setModalType('edit'); }} className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs">수정</button>
-                      <button onClick={() => openDeleteModal(u)} className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs ml-1">삭제</button>
-                    </td>
-                  </tr>
-                )) : (
-                  <tr><td colSpan="10" className="text-gray-500 py-6 text-center">등록된 유저가 없습니다.</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+              )) : (
+                <tr><td colSpan="10" className="text-gray-500 py-6 text-center">등록된 유저가 없습니다.</td></tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
         <div className="flex justify-center items-center gap-2 pt-3.5 border-t text-sm">

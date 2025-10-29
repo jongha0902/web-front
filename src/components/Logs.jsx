@@ -236,59 +236,57 @@ export default function Logs() {
           </select>
         </div>
 
-        <div className="flex-1 overflow-hidden">
-          <div className="overflow-y-auto max-h-[550px] border-t">
-            <table className="w-full text-sm border text-center table-fixed">
-              <thead className="bg-gray-50 sticky top-0 z-10">
-                <tr>
-                  <th className="border px-3 py-2 w-[5%]">#</th>
-                  <th className="border px-3 py-2 w-[6%]">사용자</th>
-                  <th className="border px-3 py-2 w-[19%]">API</th>
-                  <th className="border px-3 py-2 w-[5%]">Method</th>
-                  <th className="border px-3 py-2 w-[5%]">상태</th>
-                  <th className="border px-3 py-2 w-[12.5%]">요청 데이터</th>
-                  <th className="border px-3 py-2 w-[12.5%]">응답 데이터</th>
-                  <th className="border px-3 py-2 w-[15%]">요청시간</th>
+        <div className="flex-1 overflow-y-auto border-t">
+          <table className="w-full text-sm border text-center table-fixed">
+            <thead className="bg-gray-50 sticky top-0 z-10">
+              <tr>
+                <th className="border px-3 py-2 w-[5%]">#</th>
+                <th className="border px-3 py-2 w-[6%]">사용자</th>
+                <th className="border px-3 py-2 w-[19%]">API</th>
+                <th className="border px-3 py-2 w-[5%]">Method</th>
+                <th className="border px-3 py-2 w-[5%]">상태</th>
+                <th className="border px-3 py-2 w-[12.5%]">요청 데이터</th>
+                <th className="border px-3 py-2 w-[12.5%]">응답 데이터</th>
+                <th className="border px-3 py-2 w-[15%]">요청시간</th>
+              </tr>
+            </thead>
+            <tbody>
+              {logs.length > 0 ? logs.map((log, i) => (
+                <tr key={i} className="hover:bg-gray-100 align-top">
+                  <td className="border px-3 py-1">{totalCount - ((page - 1) * perPage + i)}</td>
+                  <td className="border px-3 py-1 break-words">{log.user_id}</td>
+                  <td className="border px-3 py-1 break-all text-xs text-left truncate" title={log.path}>{log.path}</td>
+                  <td className="border px-3 py-1 break-all text-xs">{log.method}</td>
+                  <td className="border px-3 py-1">{log.status_code}</td>
+                  <td className="border px-3 py-1 text-xs">
+                    <button
+                      onClick={() => {
+                        setModalData({ title: '요청 데이터', content: log.request_data });
+                        setViewJson(false);
+                      }}
+                      className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded hover:bg-blue-100 text-xs"
+                    >
+                      <FileSearch size={14} />상세보기
+                    </button>
+                  </td>
+                  <td className="border px-3 py-1 text-xs">
+                    <button
+                      onClick={() => {
+                        setModalData({ title: '응답 데이터', content: log.response_data });
+                        setViewJson(false);
+                      }}
+                      className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded hover:bg-blue-100 text-xs"
+                    >
+                      <FileSearch size={14} />상세보기
+                    </button>
+                  </td>
+                  <td className="border px-3 py-1 text-xs">{log.request_time}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {logs.length > 0 ? logs.map((log, i) => (
-                  <tr key={i} className="hover:bg-gray-100 align-top">
-                    <td className="border px-3 py-1">{totalCount - ((page - 1) * perPage + i)}</td>
-                    <td className="border px-3 py-1 break-words">{log.user_id}</td>
-                    <td className="border px-3 py-1 break-all text-xs text-left truncate" title={log.path}>{log.path}</td>
-                    <td className="border px-3 py-1 break-all text-xs">{log.method}</td>
-                    <td className="border px-3 py-1">{log.status_code}</td>
-                    <td className="border px-3 py-1 text-xs">
-                      <button
-                        onClick={() => {
-                          setModalData({ title: '요청 데이터', content: log.request_data });
-                          setViewJson(false);
-                        }}
-                        className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded hover:bg-blue-100 text-xs"
-                      >
-                        <FileSearch size={14} />상세보기
-                      </button>
-                    </td>
-                    <td className="border px-3 py-1 text-xs">
-                      <button
-                        onClick={() => {
-                          setModalData({ title: '응답 데이터', content: log.response_data });
-                          setViewJson(false);
-                        }}
-                        className="inline-flex items-center gap-1 bg-blue-50 text-blue-700 px-2 py-1 rounded hover:bg-blue-100 text-xs"
-                      >
-                        <FileSearch size={14} />상세보기
-                      </button>
-                    </td>
-                    <td className="border px-3 py-1 text-xs">{log.request_time}</td>
-                  </tr>
-                )) : (
-                  <tr><td colSpan="8" className="text-gray-500 py-6 text-center">등록된 로그가 없습니다.</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+              )) : (
+                <tr><td colSpan="8" className="text-gray-500 py-6 text-center">등록된 로그가 없습니다.</td></tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
         <div className="flex justify-center items-center gap-2 pt-3.5 border-t text-sm">

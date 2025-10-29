@@ -197,58 +197,56 @@ export default function ApiList() {
         </div>
 
         {/* ✅ 테이블 틀 + 헤더는 고정, tbody만 스크롤 */}
-        <div className="flex-1 overflow-hidden">
-          <div className="overflow-y-auto max-h-[550px] border-t">
-            <table className="w-full text-sm border text-center table-fixed">
-              <thead className="bg-gray-50 sticky top-0 z-10">
-                <tr>
-                  <th className="border px-3 py-1 w-[4%]">#</th>
-                  <th className="border px-3 py-1 w-[7%]">API_ID</th>
-                  <th className="border px-3 py-1 w-[10%]">이름</th>
-                  <th className="border px-3 py-1 w-[16%]">경로(URL)</th>
-                  <th className="border px-3 py-1 w-[5%]">메서드</th>
-                  <th className="border px-3 py-1 w-[12%]">설명</th>
-                  <th className="border px-3 py-1 w-[4%]">사용<br />여부</th>
-                  <th className="border px-3 py-1 w-[7%]">생성자</th>
-                  <th className="border px-3 py-1 w-[10%]">생성일</th>
-                  <th className="border px-3 py-1 w-[7%]">수정자</th>
-                  <th className="border px-3 py-1 w-[10%]">수정일</th>
-                  <th className="border px-3 py-1 w-[8%]">관리</th>
-                  <th className="border px-3 py-1 w-[0%] hidden">flow_data</th>
+        <div className="flex-1 overflow-y-auto border-t">
+          <table className="w-full text-sm border text-center table-fixed">
+            <thead className="bg-gray-50 sticky top-0 z-10">
+              <tr>
+                <th className="border px-3 py-1 w-[4%]">#</th>
+                <th className="border px-3 py-1 w-[7%]">API_ID</th>
+                <th className="border px-3 py-1 w-[10%]">이름</th>
+                <th className="border px-3 py-1 w-[16%]">경로(URL)</th>
+                <th className="border px-3 py-1 w-[5%]">메서드</th>
+                <th className="border px-3 py-1 w-[12%]">설명</th>
+                <th className="border px-3 py-1 w-[4%]">사용<br />여부</th>
+                <th className="border px-3 py-1 w-[7%]">생성자</th>
+                <th className="border px-3 py-1 w-[10%]">생성일</th>
+                <th className="border px-3 py-1 w-[7%]">수정자</th>
+                <th className="border px-3 py-1 w-[10%]">수정일</th>
+                <th className="border px-3 py-1 w-[8%]">관리</th>
+                <th className="border px-3 py-1 w-[0%] hidden">flow_data</th>
+              </tr>
+            </thead>
+            <tbody>
+              {apiList.length > 0 ? apiList.map((api, i) => (
+                <tr key={`${api.api_id}-${api.method}` || i} className="hover:bg-blue-100 cursor-pointer"
+                  onClick={() => {
+                    setForm(api);
+                    setEditTarget(api);
+                    setModalType('view');
+                  }}
+                >
+                  <td className="border px-3 py-1">{totalCount - ((page - 1) * perPage + i)}</td>
+                  <td className="border px-3 py-1 text-sm">{api.api_id}</td>
+                  <td className="border px-3 py-1 text-left font-medium truncate">{api.api_name}</td>
+                  <td className="border px-3 py-1 text-left text-blue-600 font-mono text-xs break-all truncate" title={api.path}>{api.path}</td>
+                  <td className="border px-3 py-1 uppercase">{api.method}</td>
+                  <td className="border px-3 py-1 text-left text-sm truncate" title={api.description}>{api.description}</td>
+                  <td className="border px-3 py-1 text-sm">{api.use_yn === 'Y' ? '✅' : '❌'}</td>
+                  <td className="border px-3 py-1 text-sm">{api.write_id}</td>
+                  <td className="border px-3 py-1 text-sm">{api.write_date}</td>
+                  <td className="border px-3 py-1 text-sm">{api.update_id}</td>
+                  <td className="border px-3 py-1 text-sm">{api.update_date}</td>
+                  <td className="border px-3 py-1">
+                    <button className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs ml-1" onClick={(e) => { e.stopPropagation(); setForm(api); setEditTarget(api); setModalType('edit');}}>수정</button>
+                    <button className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs ml-1" onClick={(e) => { e.stopPropagation(); setForm(api); setEditTarget(api); setDeleteModal(true); }}>삭제</button>
+                  </td>
+                  <td className="border px-3 py-1 text-sm hidden">{api.flow_data}</td>
                 </tr>
-              </thead>
-              <tbody>
-                {apiList.length > 0 ? apiList.map((api, i) => (
-                  <tr key={`${api.api_id}-${api.method}` || i} className="hover:bg-blue-100 cursor-pointer"
-                    onClick={() => {
-                      setForm(api);
-                      setEditTarget(api);
-                      setModalType('view');
-                    }}
-                  >
-                    <td className="border px-3 py-1">{totalCount - ((page - 1) * perPage + i)}</td>
-                    <td className="border px-3 py-1 text-sm">{api.api_id}</td>
-                    <td className="border px-3 py-1 text-left font-medium truncate">{api.api_name}</td>
-                    <td className="border px-3 py-1 text-left text-blue-600 font-mono text-xs break-all truncate" title={api.path}>{api.path}</td>
-                    <td className="border px-3 py-1 uppercase">{api.method}</td>
-                    <td className="border px-3 py-1 text-left text-sm truncate" title={api.description}>{api.description}</td>
-                    <td className="border px-3 py-1 text-sm">{api.use_yn === 'Y' ? '✅' : '❌'}</td>
-                    <td className="border px-3 py-1 text-sm">{api.write_id}</td>
-                    <td className="border px-3 py-1 text-sm">{api.write_date}</td>
-                    <td className="border px-3 py-1 text-sm">{api.update_id}</td>
-                    <td className="border px-3 py-1 text-sm">{api.update_date}</td>
-                    <td className="border px-3 py-1">
-                      <button className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs ml-1" onClick={(e) => { e.stopPropagation(); setForm(api); setEditTarget(api); setModalType('edit');}}>수정</button>
-                      <button className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs ml-1" onClick={(e) => { e.stopPropagation(); setForm(api); setEditTarget(api); setDeleteModal(true); }}>삭제</button>
-                    </td>
-                    <td className="border px-3 py-1 text-sm hidden">{api.flow_data}</td>
-                  </tr>
-                )) : (
-                  <tr><td colSpan="12" className="text-gray-500 py-6 text-center">등록된 API 정보가 없습니다.</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+              )) : (
+                <tr><td colSpan="12" className="text-gray-500 py-6 text-center">등록된 API 정보가 없습니다.</td></tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
         {/* 페이지 버튼 */}

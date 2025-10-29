@@ -180,7 +180,7 @@ export default function UserPermissionManage() {
         </div>
 
         {/* 권한 종류 테이블 */}
-        <div className="flex-1 overflow-y-auto max-h-[670px] border rounded mt-4">
+        <div className="flex-1 overflow-y-auto border rounded mt-4">
           <table className="w-full text-sm border table-fixed">
             <thead className="bg-gray-50 sticky top-0 z-10">
               <tr>
@@ -299,7 +299,7 @@ export default function UserPermissionManage() {
             </div>
             
             {/* 유저 목록 테이블 */}
-            <div className="flex-1 overflow-y-auto max-h-[650px] border rounded">
+            <div className="flex-1 overflow-y-auto border rounded">
               <table className="w-full text-sm border text-center">
                 <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>

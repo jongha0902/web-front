@@ -330,7 +330,7 @@ const UserApiPermissionManager = () => {
           </select>
         </div>
 
-        <div className="flex-1 overflow-y-auto max-h-[595px] border rounded">
+        <div className="flex-1 overflow-y-auto border rounded">
           <table className="w-full text-sm border text-center table-fixed">
             <thead className="bg-gray-50 sticky top-0 z-10">
               <tr>
@@ -453,7 +453,7 @@ const UserApiPermissionManager = () => {
         ) : (
           <>
             {/* 📋 테이블 */}
-            <div className="flex-1 overflow-y-auto max-h-[620px] border-t">
+            <div className="flex-1 overflow-y-auto border-t">
               <table className="w-full text-sm border text-center table-fixed">
                 <thead className="bg-gray-50 sticky top-0 z-10">
                   <tr>
@@ -516,7 +516,7 @@ const UserApiPermissionManager = () => {
             </div>
 
             {/* 💾 저장 버튼 */}
-            <div className="text-right mt-4">
+            <div className="text-right pt-2 border-t">
               <button
                 onClick={savePermissions}
                 className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"

@@ -185,71 +185,69 @@ export default function ScreenManager() {
         </div>
 
         {/* 테이블 영역 (스크롤) */}
-        <div className="flex-1 overflow-hidden">
-          <div className="overflow-y-auto max-h-[550px] border-t">
-            <table className="w-full text-sm border text-center table-fixed">
-              <thead className="bg-gray-50 sticky top-0 z-10">
-                <tr>
-                  <th className="border px-3 py-1 w-[5%]">#</th>
-                  <th className="border px-3 py-1 w-[10%]">코드</th>
-                  <th className="border px-3 py-1 w-[15%]">이름</th>
-                  <th className="border px-3 py-1 w-[18%]">접근 경로</th>
-                  <th className="border px-3 py-1 w-[15%]">컴포넌트</th>
-                  <th className="border px-3 py-1 w-[6%]">사용< br/>여부</th>
-                  <th className="border px-3 py-1 w-[19%]">설명</th>
-                  <th className="border px-3 py-1 w-[8%]">생성자</th>
-                  <th className="border px-3 py-1 w-[10%]">생성일</th>
-                  <th className="border px-3 py-1 w-[8%]">수정자</th>
-                  <th className="border px-3 py-1 w-[10%]">수정일</th>
-                  <th className="border px-3 py-1 w-[15%]">관리</th>
+        <div className="flex-1 overflow-y-auto border-t">
+          <table className="w-full text-sm border text-center table-fixed">
+            <thead className="bg-gray-50 sticky top-0 z-10">
+              <tr>
+                <th className="border px-3 py-1 w-[5%]">#</th>
+                <th className="border px-3 py-1 w-[10%]">코드</th>
+                <th className="border px-3 py-1 w-[15%]">이름</th>
+                <th className="border px-3 py-1 w-[18%]">접근 경로</th>
+                <th className="border px-3 py-1 w-[15%]">컴포넌트</th>
+                <th className="border px-3 py-1 w-[6%]">사용< br/>여부</th>
+                <th className="border px-3 py-1 w-[19%]">설명</th>
+                <th className="border px-3 py-1 w-[8%]">생성자</th>
+                <th className="border px-3 py-1 w-[10%]">생성일</th>
+                <th className="border px-3 py-1 w-[8%]">수정자</th>
+                <th className="border px-3 py-1 w-[10%]">수정일</th>
+                <th className="border px-3 py-1 w-[15%]">관리</th>
+              </tr>
+            </thead>
+            <tbody>
+              {screenList.length > 0 ? screenList.map((screen, index) => (
+                <tr
+                  key={screen.screen_code}
+                  className="hover:bg-blue-100 cursor-pointer"
+                  onClick={() => {
+                    setEditScreen(screen);
+                    setModalType('view');
+                  }}
+                >
+                  <td className="border px-3 py-1">{totalCount - ((page - 1) * perPage + index)}</td>
+                  <td className="border px-3 py-1 text-left truncate" title={screen.screen_code}>{screen.screen_code}</td>
+                  <td className="border px-3 py-1 text-left truncate" title={screen.screen_name}>{screen.screen_name}</td>
+                  <td className="border px-3 py-1 text-left font-mono text-xs break-all truncate" title={screen.screen_path}>{screen.screen_path}</td>
+                  <td className="border px-3 py-1 text-left truncate" title={screen.component_name}>{screen.component_name}</td>
+                  <td className="border px-3 py-1">
+                    {screen.use_yn === 'Y' ? '✅' : '❌'}
+                  </td>
+                  <td className="border px-3 py-1 text-left truncate" title={screen.description}>{screen.description}</td>
+                  <td className="border px-3 py-1">{screen.create_id}</td>
+                  <td className="border px-3 py-1 text-xs">{screen.create_date}</td>
+                  <td className="border px-3 py-1">{screen.update_id}</td>
+                  <td className="border px-3 py-1 text-xs">{screen.update_date}</td>
+                  <td className="border px-3 py-1">
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setEditScreen(screen); setModalType('edit'); }}
+                      className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs"
+                    >
+                      수정
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); setEditScreen(screen); setModalType('delete'); }}
+                      className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs ml-1"
+                    >
+                      삭제
+                    </button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {screenList.length > 0 ? screenList.map((screen, index) => (
-                  <tr
-                    key={screen.screen_code}
-                    className="hover:bg-blue-100 cursor-pointer"
-                    onClick={() => {
-                      setEditScreen(screen);
-                      setModalType('view');
-                    }}
-                  >
-                    <td className="border px-3 py-1">{totalCount - ((page - 1) * perPage + index)}</td>
-                    <td className="border px-3 py-1 text-left truncate" title={screen.screen_code}>{screen.screen_code}</td>
-                    <td className="border px-3 py-1 text-left truncate" title={screen.screen_name}>{screen.screen_name}</td>
-                    <td className="border px-3 py-1 text-left font-mono text-xs break-all truncate" title={screen.screen_path}>{screen.screen_path}</td>
-                    <td className="border px-3 py-1 text-left truncate" title={screen.component_name}>{screen.component_name}</td>
-                    <td className="border px-3 py-1">
-                      {screen.use_yn === 'Y' ? '✅' : '❌'}
-                    </td>
-                    <td className="border px-3 py-1 text-left truncate" title={screen.description}>{screen.description}</td>
-                    <td className="border px-3 py-1">{screen.create_id}</td>
-                    <td className="border px-3 py-1 text-xs">{screen.create_date}</td>
-                    <td className="border px-3 py-1">{screen.update_id}</td>
-                    <td className="border px-3 py-1 text-xs">{screen.update_date}</td>
-                    <td className="border px-3 py-1">
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setEditScreen(screen); setModalType('edit'); }}
-                        className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs"
-                      >
-                        수정
-                      </button>
-                      <button
-                        onClick={(e) => { e.stopPropagation(); setEditScreen(screen); setModalType('delete'); }}
-                        className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs ml-1"
-                      >
-                        삭제
-                      </button>
-                    </td>
-                  </tr>
-                )) : (
-                  <tr>
-                    <td colSpan={12} className="text-center py-6 text-gray-500">등록된 화면이 없습니다.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+              )) : (
+                <tr>
+                  <td colSpan={12} className="text-center py-6 text-gray-500">등록된 화면이 없습니다.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
         {/* 페이징 영역 (고정 하단) */}

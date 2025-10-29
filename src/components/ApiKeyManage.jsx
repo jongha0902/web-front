@@ -207,47 +207,45 @@ export default function ApiKey() {
         </div>
 
         {/* ✅ 테이블 틀 + 헤더는 고정, tbody만 스크롤 */}
-        <div className="flex-1 overflow-hidden">
-          <div className="overflow-y-auto max-h-[550px] border-t">
-            <table className="w-full text-sm border text-center table-fixed">
-              <thead className="bg-gray-50 sticky top-0 z-10">
-                <tr>
-                  <th className="border px-3 py-2 w-[5%]">#</th>
-                  <th className="border px-3 py-2 w-[8%]">ID</th>
-                  <th className="border px-3 py-2 w-[8%]">이름</th>
-                  <th className="border px-3 py-2 w-[20%]">API Key</th>
-                  <th className="border px-3 py-2 w-[15%]">비고</th>
-                  <th className="border px-3 py-2 w-[13%]">생성일</th>
-                  <th className="border px-3 py-2 w-[10%]">생성자</th>
-                  <th className="border px-3 py-2 w-[13%]">재발급< br/>/수정일</th>
-                  <th className="border px-3 py-2 w-[10%]">재발급< br/>/수정자</th>
-                  <th className="border px-3 py-2 w-[15%]">관리</th>
+        <div className="flex-1 overflow-y-auto border-t">
+          <table className="w-full text-sm border text-center table-fixed">
+            <thead className="bg-gray-50 sticky top-0 z-10">
+              <tr>
+                <th className="border px-3 py-2 w-[5%]">#</th>
+                <th className="border px-3 py-2 w-[8%]">ID</th>
+                <th className="border px-3 py-2 w-[8%]">이름</th>
+                <th className="border px-3 py-2 w-[20%]">API Key</th>
+                <th className="border px-3 py-2 w-[15%]">비고</th>
+                <th className="border px-3 py-2 w-[13%]">생성일</th>
+                <th className="border px-3 py-2 w-[10%]">생성자</th>
+                <th className="border px-3 py-2 w-[13%]">재발급< br/>/수정일</th>
+                <th className="border px-3 py-2 w-[10%]">재발급< br/>/수정자</th>
+                <th className="border px-3 py-2 w-[15%]">관리</th>
+              </tr>
+            </thead>
+            <tbody>
+              {keyList.length > 0 ? keyList.map((key, i) => (
+                <tr key={key.user_id} className="hover:bg-gray-100">
+                  <td className="border px-3 py-1">{totalCount - ((page - 1) * perPage + i)}</td>
+                  <td className="border px-3 py-1 font-mono">{key.user_id}</td>
+                  <td className="border px-3 py-1 font-mono">{key.user_name}</td>
+                  <td className="border px-3 py-1 font-mono text-xs break-all truncate" title={key.api_key}>{key.api_key}</td>
+                  <td className="border px-3 py-1 truncate text-left" title={key.comment}>{key.comment}</td>
+                  <td className="border px-3 py-1">{key.generate_date}</td>
+                  <td className="border px-3 py-1">{key.generate_id}</td>
+                  <td className="border px-3 py-1">{key.regenerate_date}</td>
+                  <td className="border px-3 py-1">{key.regenerate_id}</td>
+                  <td className="border px-3 py-1">
+                    <button onClick={() => { setModalAction('regenerate'); setModalUserId(key.user_id); setModalComment(key.comment); }} className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs">재발급</button>
+                    <button onClick={() => { setModalType('edit'); setModalUserId(key.user_id); setModalComment(key.comment); }} className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs ml-1">수정</button>
+                    <button onClick={() => { setModalAction('revoke'); setModalUserId(key.user_id); setModalComment(key.comment); }} className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs ml-1">삭제</button>
+                  </td>
                 </tr>
-              </thead>
-              <tbody>
-                {keyList.length > 0 ? keyList.map((key, i) => (
-                  <tr key={key.user_id} className="hover:bg-gray-100">
-                    <td className="border px-3 py-1">{totalCount - ((page - 1) * perPage + i)}</td>
-                    <td className="border px-3 py-1 font-mono">{key.user_id}</td>
-                    <td className="border px-3 py-1 font-mono">{key.user_name}</td>
-                    <td className="border px-3 py-1 font-mono text-xs break-all truncate" title={key.api_key}>{key.api_key}</td>
-                    <td className="border px-3 py-1 truncate text-left" title={key.comment}>{key.comment}</td>
-                    <td className="border px-3 py-1">{key.generate_date}</td>
-                    <td className="border px-3 py-1">{key.generate_id}</td>
-                    <td className="border px-3 py-1">{key.regenerate_date}</td>
-                    <td className="border px-3 py-1">{key.regenerate_id}</td>
-                    <td className="border px-3 py-1">
-                      <button onClick={() => { setModalAction('regenerate'); setModalUserId(key.user_id); setModalComment(key.comment); }} className="bg-yellow-500 hover:bg-yellow-600 text-white px-2 py-1 rounded text-xs">재발급</button>
-                      <button onClick={() => { setModalType('edit'); setModalUserId(key.user_id); setModalComment(key.comment); }} className="bg-green-500 hover:bg-green-600 text-white px-2 py-1 rounded text-xs ml-1">수정</button>
-                      <button onClick={() => { setModalAction('revoke'); setModalUserId(key.user_id); setModalComment(key.comment); }} className="bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded text-xs ml-1">삭제</button>
-                    </td>
-                  </tr>
-                )) : (
-                  <tr><td colSpan="10" className="text-gray-500 py-6 text-center">등록된 API Key가 없습니다.</td></tr>
-                )}
-              </tbody>
-            </table>
-          </div>
+              )) : (
+                <tr><td colSpan="10" className="text-gray-500 py-6 text-center">등록된 API Key가 없습니다.</td></tr>
+              )}
+            </tbody>
+          </table>
         </div>
 
         {/* ✅ 페이지 버튼 아래 고정 */}
