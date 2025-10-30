@@ -209,7 +209,7 @@ const ApiPermissionRequest = () => {
               <textarea
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className="border rounded px-3 py-2 bg-blue-50 w-full h-[200px] resize-none"
+                className="border rounded px-3 py-2 bg-blue-50 w-full h-full resize-none"
                 placeholder="API 권한이 필요한 이유를 작성해주세요."
               />
             </div>
@@ -228,7 +228,7 @@ const ApiPermissionRequest = () => {
       </div>
       
       {/* 오른쪽 내 권한 영역 */}
-      <div className="flex flex-col min-h-[710px] border rounded p-4 bg-white shadow" style={{ height: 'calc(100vh - 105px)' }}>
+      <div className="flex flex-col border rounded p-4 bg-white shadow">
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-lg font-semibold">🔐 내 API 권한 목록</h2>
         </div>

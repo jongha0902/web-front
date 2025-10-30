@@ -18,13 +18,13 @@ function PrivateLayout({ children, title }) {
   if (!isLoggedIn) return null; // 로그인 안됐으면 렌더링 X
 
   return (
-    <div className="flex h-screen bg-gray-100 min-w-[1500px] overflow-auto">
+    <div className="flex h-screen bg-gray-100 min-w-[1650px] min-h-[800px] overflow-auto">
       <Suspense fallback={<div>Sidebar Loading...</div>}>
         <Sidebar />
       </Suspense>
 
       {/* ✅ 오른쪽 콘텐츠 영역 전체 */}
-      <div className="flex flex-col flex-1 overflow-hidden">
+      <div className="flex flex-col flex-1">
         <Suspense fallback={<div>Header Loading...</div>}>
           <Header title={title} />
         </Suspense>

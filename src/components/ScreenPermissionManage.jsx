@@ -120,7 +120,7 @@ export default function PermissionManage() {
   return (
     <div className="flex w-full gap-4 h-full">
       {/* 권한 종류 영역 */}
-      <div className="flex flex-col min-h-[450px] min-w-[360px] max-w-[420px] flex-shrink-0 border rounded p-4 bg-white shadow" style={{ height: 'calc(100vh - 105px)' }}>
+      <div className="flex flex-col min-h-[450px] min-w-[360px] max-w-[420px] flex-shrink-0 border rounded p-4 bg-white shadow">
         <h2 className="text-lg font-semibold mb-1">🔐 권한 종류</h2>
 
         <div className="flex flex-wrap items-center gap-2 mt-2 mb-2 bg-white px-4 py-2 rounded border shadow-sm">
@@ -196,7 +196,7 @@ export default function PermissionManage() {
       </div>
 
       {/* 오른쪽 영역: 화면 권한 설정 */}
-      <div className="flex flex-col min-h-[450px] w-full border rounded p-4 bg-white shadow" style={{ height: 'calc(100vh - 105px)' }}>
+      <div className="flex flex-col min-h-[450px] w-full border rounded p-4 bg-white shadow">
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-lg font-semibold">🖥️ 화면 권한 설정</h2>
         </div>

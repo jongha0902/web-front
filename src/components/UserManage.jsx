@@ -158,6 +158,11 @@ export default function UserManage() {
       showMessage('비밀번호가 일치하지 않습니다.');
       return;
     }
+
+    if (!newPasswordInput.length < 8 || newPasswordCheck.length < 8) {
+      showMessage('비밀번호는 8자 이상이어야 합니다.');
+      return;
+    }
   
     try {
       if (isEmpty(editUser.user_id)){
@@ -222,7 +227,7 @@ export default function UserManage() {
         <h3 className="text-lg font-semibold">📋 목록</h3>
         <button
           onClick={() => {
-            setEditUser({ user_id: '', user_name: '', permission_code: '', use_yn: 'N', created_id: '', update_id: '' });
+            setEditUser({ user_id: '', user_name: '', permission_code: '', use_yn: 'Y', created_id: '', update_id: '' });
             setModalType('create');
           }}
           className="bg-blue-600 text-white px-4 py-1 rounded text-sm"

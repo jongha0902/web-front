@@ -38,7 +38,7 @@ export default defineConfig({
         changeOrigin: true,
       },
       '/ask': {
-        target: 'http://10.100.12.145:8000',
+        target: 'http://10.100.12.145:8003',
         changeOrigin: true, // CORS 문제를 해결하기 위해 필요
       },
     },

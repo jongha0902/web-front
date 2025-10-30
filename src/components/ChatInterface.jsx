@@ -10,7 +10,7 @@ export default function ChatInterface() {
     { sender: 'bot', text: '안녕하세요! 무엇을 도와드릴까요?' } // 초기 메시지
   ]);
   const [inputText, setInputText] = useState(''); // 입력 텍스트 상태
-  const [promptType, setPromptType] = useState('1'); // 프롬프트 타입 상태 ('RAG_양식' 기본값)
+  const [promptType, setPromptType] = useState('1'); // 프롬프트 타입 상태
   const [isWaiting, setIsWaiting] = useState(false); // 응답 대기 상태
   const { showError } = useError(); // 에러 모달 표시 훅
   const chatEndRef = useRef(null); // 채팅 맨 아래로 스크롤하기 위한 ref
@@ -165,8 +165,7 @@ export default function ChatInterface() {
              className="border rounded-md px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
              disabled={isWaiting}
            >
-             <option value="0">RAG_양식</option>
-             <option value="1">RAG</option>
+             <option value="1">전력거래</option>
              <option value="2">일반</option>
            </select>
          </div>

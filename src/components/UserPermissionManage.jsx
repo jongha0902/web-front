@@ -130,7 +130,7 @@ export default function UserPermissionManage() {
   return (
     <div className="flex w-full gap-4 h-full">
       {/* 왼쪽 영역: 권한 종류 관리 */}
-      <div className="flex flex-col min-h-[450px] border rounded p-4 bg-white shadow" style={{ height: 'calc(100vh - 105px)' }}>
+      <div className="flex flex-col min-h-[450px] border rounded p-4 bg-white shadow">
         <div className="flex items-center justify-between mb-1">
           <h2 className="text-lg font-semibold">🔐 권한 종류 관리</h2>
           <button
