@@ -41,7 +41,7 @@ export default function Sidebar() {
             to={screen.screen_path}
             end
             className={({ isActive }) =>
-              `px-5 py-2.5 border-l-4 text-left transition-all ${
+              `px-5 py-3 border-l-4 text-left transition-all ${
                 isActive
                   ? 'border-blue-500 text-blue-700 bg-blue-50 font-semibold'
                   : 'border-transparent text-gray-700 hover:bg-gray-100'

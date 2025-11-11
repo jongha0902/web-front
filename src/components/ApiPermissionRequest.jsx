@@ -133,224 +133,228 @@ const ApiPermissionRequest = () => {
   const { sortedData, sortField, sortDirection, handleSort } = useSortableData(filteredPermissionApiList);
 
   return (
-    <div className="flex w-full gap-4 h-full">
-      {/* 왼쪽 - 신청 영역 */}
-      <div className="w-[550px] flex-none bg-white border rounded shadow p-6 flex flex-col gap-4">
+    <div className="flex flex-col flex-1 h-full min-h-0">
+      <h2 className="text-xl font-bold mb-2">🔑 API 권한 신청</h2>
+      
+      <div className="flex flex-row flex-1 gap-4 mt-2 min-h-0">
+        {/* 왼쪽 - 신청 영역 */}
+        <div className="w-[550px] flex-none bg-white border rounded shadow p-6 flex flex-col gap-4">
 
-        {/* 🔑 API Key 발급 or 재발급 영역 */}
-        <div className="bg-white border rounded shadow p-6 mb-4">
-          <h2 className="text-lg font-bold mb-2">
-            🔑 API Key {user?.has_api_key ? '재발급' : '발급'}
-          </h2>
+          {/* 🔑 API Key 발급 or 재발급 영역 */}
+          <div className="bg-white border rounded shadow p-6 mb-4">
+            <h2 className="text-lg font-bold mb-2">
+              🔑 API Key {user?.has_api_key ? '재발급' : '발급'}
+            </h2>
 
-          <p className="text-sm text-gray-600 mb-4">
-            {user?.has_api_key
-              ? '이미 API Key가 발급된 계정입니다.'
-              : 'API Key가 발급되지 않은 계정입니다.'}
-          </p>
+            <p className="text-sm text-gray-600 mb-4">
+              {user?.has_api_key
+                ? '이미 API Key가 발급된 계정입니다.'
+                : 'API Key가 발급되지 않은 계정입니다.'}
+            </p>
 
-          <div className="flex justify-end">
-            <button
-              onClick={handleApiKey}
-              className={`${user?.has_api_key ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-600 hover:bg-green-700'} text-white px-4 py-2 rounded text-sm`}
-            >
-              {user?.has_api_key ? 'API Key 재발급' : 'API Key 신규 발급'}
-            </button>
-          </div>
-        </div>
-
-        <div className="bg-white border rounded shadow p-6 flex flex-col gap-4 flex-grow">
-          <h2 className="text-xl font-bold mb-2">📮 API 권한 신청</h2>
-
-          {/* 입력 필드 영역 (전체 높이 사용) */}
-          <div className="flex flex-col gap-4 flex-grow">
-            {/* Method Filter */}
-            <div className="grid grid-cols-[80px_1fr] items-center gap-2">
-              <label className="text-sm text-gray-700">Method</label>
-              <select
-                value={methodFilter}
-                onChange={(e) => {
-                  setMethodFilter(e.target.value);
-                  setSelectedApi(null);
-                }}
-                className="border rounded px-3 py-1 bg-blue-50"
+            <div className="flex justify-end">
+              <button
+                onClick={handleApiKey}
+                className={`${user?.has_api_key ? 'bg-yellow-500 hover:bg-yellow-600' : 'bg-green-600 hover:bg-green-700'} text-white px-4 py-2 rounded text-sm`}
               >
-                <option value="ALL">전체</option>
-                <option value="GET">GET</option>
-                <option value="POST">POST</option>
-                <option value="PUT">PUT</option>
-                <option value="PATCH">PATCH</option>
-                <option value="DELETE">DELETE</option>
-              </select>
+                {user?.has_api_key ? 'API Key 재발급' : 'API Key 신규 발급'}
+              </button>
             </div>
+          </div>
 
-            {/* API 선택 */}
-            <div className="grid grid-cols-[80px_1fr] items-center gap-2">
-              <label className="text-sm text-gray-700">신청 가능한 API</label>
-              <div className="w-full relative">
-                {filteredApiList.length > 0 ? (
-                  <ApiListDropdown
-                    apiList={filteredApiList}
-                    selectedApi={selectedApi}
-                    onChange={setSelectedApi}
-                    type=""
-                  />
-                ) : (
-                  <div className="text-sm text-gray-500 px-2 py-2 border rounded bg-gray-50">
-                    신청 가능한 API가 없습니다.
-                  </div>
-                )}
+          <div className="bg-white border rounded shadow p-6 flex flex-col gap-4 flex-grow">
+            <h2 className="text-xl font-bold mb-2">📮 API 권한 신청</h2>
+
+            {/* 입력 필드 영역 (전체 높이 사용) */}
+            <div className="flex flex-col gap-4 flex-grow">
+              {/* Method Filter */}
+              <div className="grid grid-cols-[80px_1fr] items-center gap-2">
+                <label className="text-sm text-gray-700">Method</label>
+                <select
+                  value={methodFilter}
+                  onChange={(e) => {
+                    setMethodFilter(e.target.value);
+                    setSelectedApi(null);
+                  }}
+                  className="border rounded px-3 py-1 bg-blue-50"
+                >
+                  <option value="ALL">전체</option>
+                  <option value="GET">GET</option>
+                  <option value="POST">POST</option>
+                  <option value="PUT">PUT</option>
+                  <option value="PATCH">PATCH</option>
+                  <option value="DELETE">DELETE</option>
+                </select>
+              </div>
+
+              {/* API 선택 */}
+              <div className="grid grid-cols-[80px_1fr] items-center gap-2">
+                <label className="text-sm text-gray-700">신청 가능한 API</label>
+                <div className="w-full relative">
+                  {filteredApiList.length > 0 ? (
+                    <ApiListDropdown
+                      apiList={filteredApiList}
+                      selectedApi={selectedApi}
+                      onChange={setSelectedApi}
+                      type=""
+                    />
+                  ) : (
+                    <div className="text-sm text-gray-500 px-2 py-2 border rounded bg-gray-50">
+                      신청 가능한 API가 없습니다.
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* 사유 입력 */}
+              <div className="grid grid-cols-[80px_1fr] items-start gap-2 flex-grow">
+                <label className="text-sm text-gray-700 mt-1">신청 사유</label>
+                <textarea
+                  value={reason}
+                  onChange={(e) => setReason(e.target.value)}
+                  className="border rounded px-3 py-2 bg-blue-50 w-full h-full resize-none"
+                  placeholder="API 권한이 필요한 이유를 작성해주세요."
+                />
               </div>
             </div>
 
-            {/* 사유 입력 */}
-            <div className="grid grid-cols-[80px_1fr] items-start gap-2 flex-grow">
-              <label className="text-sm text-gray-700 mt-1">신청 사유</label>
-              <textarea
-                value={reason}
-                onChange={(e) => setReason(e.target.value)}
-                className="border rounded px-3 py-2 bg-blue-50 w-full h-full resize-none"
-                placeholder="API 권한이 필요한 이유를 작성해주세요."
-              />
+            {/* 신청 버튼 (하단 고정) */}
+            <div className="text-right mt-2">
+              <button
+                onClick={handleRequest}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+              >
+                신청
+              </button>
             </div>
           </div>
+        </div>
+        
+        {/* 오른쪽 내 권한 영역 */}
+        <div className="flex flex-col border rounded p-4 bg-white shadow">
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="text-lg font-semibold">🔐 내 API 권한 목록</h2>
+          </div>
 
-          {/* 신청 버튼 (하단 고정) */}
-          <div className="text-right mt-2">
-            <button
-              onClick={handleRequest}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+          {/* 🔍 검색 + Method 필터 */}
+          <div className="flex flex-wrap items-center gap-2 mt-2 mb-2 bg-white px-4 py-2 rounded border shadow-sm">
+            <label className="w-20 text-gray-700 px-3">검색어</label>
+            <input
+              type="text"
+              value={apiSearchKeyword}
+              onChange={(e) => setApiSearchKeyword(e.target.value)}
+              placeholder="API 이름 또는 경로로 검색"
+              className="flex-1 min-w-[180px] border px-3 py-2 rounded text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 bg-blue-50"
+            />
+            <label className="w-20 text-gray-700 px-3">Method</label>
+            {/* 🔧 버그 수정: methodFilter → permissionMethodFilter */}
+            <select
+              value={permissionMethodFilter}
+              onChange={(e) => setPermissionMethodFilter(e.target.value)}
+              className="border px-3 py-2 rounded text-sm bg-blue-50"
             >
-              신청
+              <option value="ALL">전체</option>
+              <option value="GET">GET</option>
+              <option value="POST">POST</option>
+              <option value="PUT">PUT</option>
+              <option value="PATCH">PATCH</option>
+              <option value="DELETE">DELETE</option>
+              <option value="HEAD">HEAD</option>
+              <option value="OPTIONS">OPTIONS</option>
+            </select>
+            <button
+              onClick={() => {
+                setApiSearchKeyword('');
+                setPermissionMethodFilter('ALL');
+                fetchApiList();
+              }}
+              className="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded text-sm"
+            >
+              초기화
             </button>
           </div>
-        </div>
-      </div>
-      
-      {/* 오른쪽 내 권한 영역 */}
-      <div className="flex flex-col border rounded p-4 bg-white shadow">
-        <div className="flex items-center justify-between mb-1">
-          <h2 className="text-lg font-semibold">🔐 내 API 권한 목록</h2>
-        </div>
 
-        {/* 🔍 검색 + Method 필터 */}
-        <div className="flex flex-wrap items-center gap-2 mt-2 mb-2 bg-white px-4 py-2 rounded border shadow-sm">
-          <label className="w-20 text-gray-700 px-3">검색어</label>
-          <input
-            type="text"
-            value={apiSearchKeyword}
-            onChange={(e) => setApiSearchKeyword(e.target.value)}
-            placeholder="API 이름 또는 경로로 검색"
-            className="flex-1 min-w-[180px] border px-3 py-2 rounded text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 bg-blue-50"
-          />
-          <label className="w-20 text-gray-700 px-3">Method</label>
-          {/* 🔧 버그 수정: methodFilter → permissionMethodFilter */}
-          <select
-            value={permissionMethodFilter}
-            onChange={(e) => setPermissionMethodFilter(e.target.value)}
-            className="border px-3 py-2 rounded text-sm bg-blue-50"
-          >
-            <option value="ALL">전체</option>
-            <option value="GET">GET</option>
-            <option value="POST">POST</option>
-            <option value="PUT">PUT</option>
-            <option value="PATCH">PATCH</option>
-            <option value="DELETE">DELETE</option>
-            <option value="HEAD">HEAD</option>
-            <option value="OPTIONS">OPTIONS</option>
-          </select>
-          <button
-            onClick={() => {
-              setApiSearchKeyword('');
-              setPermissionMethodFilter('ALL');
-              fetchApiList();
-            }}
-            className="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded text-sm"
-          >
-            초기화
-          </button>
-        </div>
-
-        {/* 📋 권한 테이블 */}
-        <div className="flex-1 overflow-y-auto min-h-0 border rounded">
-          <table className="w-full text-sm border text-center table-fixed">
-              <thead className="bg-gray-50 sticky top-0 z-10">
-                <tr>
-                  <th className="border px-3 py-2 w-[5%]">#</th>
-                  <th className="border px-3 py-2 w-[14%]">API id</th>
-                  <th
-                    className="border px-3 py-2 w-[20%] cursor-pointer"
-                    onClick={() => handleSort('api_name')}
-                  >
-                    API 이름 {sortField === 'api_name' && (sortDirection === 'asc' ? '▲' : '▼')}
-                  </th>
-                  <th
-                    className="border px-3 py-2 w-[30%] cursor-pointer"
-                    onClick={() => handleSort('description')}
-                  >
-                    설명 {sortField === 'description' && (sortDirection === 'asc' ? '▲' : '▼')}
-                  </th>
-                  <th
-                    className="border px-3 py-2 w-[9%] cursor-pointer"
-                    onClick={() => handleSort('method')}
-                  >
-                    Method {sortField === 'method' && (sortDirection === 'asc' ? '▲' : '▼')}
-                  </th>
-                  <th
-                    className="border px-3 py-2 w-[10%] cursor-pointer"
-                    onClick={() => handleSort('has_permission')}
-                  >
-                    권한 {sortField === 'has_permission' && (sortDirection === 'asc' ? '▲' : '▼')}
-                  </th>
-                  <th
-                    className="border px-3 py-2 w-[11%] cursor-pointer"
-                    onClick={() => handleSort('request_status')}
-                  >
-                    신청 상태 {sortField === 'request_status' && (sortDirection === 'asc' ? '▲' : '▼')}
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {sortedData.length > 0 ? (
-                  sortedData.map((item, idx) => (
-                    <tr key={`${item.api_id}-${item.method}`} className="hover:bg-gray-50">
-                      <td className="border px-3 py-2">{idx + 1}</td>
-                      <td className="border px-3 py-2">{item.api_id}</td>
-                      <td className="border px-3 py-2 text-left truncate" title={item.api_name}>{item.api_name}</td>
-                      <td className="border px-3 py-2 text-left font-mono break-all" title={item.description}>{item.description}</td>
-                      <td className="border px-3 py-2">{item.method}</td>
-                      <td className="border px-3 py-2 font-semibold">
-                        {item.has_permission ? '✅ 보유' : '❌ 없음'}
-                      </td>
-                      <td className="border px-3 py-2">
-                        {item.request_status === 'PENDING' && <span className="text-yellow-600 font-medium">⏳ 대기</span>}
-                        {item.request_status === 'APPROVED' && <span className="text-green-600 font-medium">✅ 승인</span>}
-                        {item.request_status === 'REJECTED' && <span className="text-red-600 font-medium">❌ 반려</span>}
-                        {item.request_status === 'return' && <span className="text-red-600 font-medium">🔁 권한철회</span>}
-                        {!item.request_status && <span className="text-gray-400">-</span>}
+          {/* 📋 권한 테이블 */}
+          <div className="flex-1 overflow-y-auto min-h-0 border rounded">
+            <table className="w-full text-sm border text-center table-fixed">
+                <thead className="bg-gray-50 sticky top-0 z-10">
+                  <tr>
+                    <th className="border px-3 py-2 w-[5%]">#</th>
+                    <th className="border px-3 py-2 w-[14%]">API id</th>
+                    <th
+                      className="border px-3 py-2 w-[20%] cursor-pointer"
+                      onClick={() => handleSort('api_name')}
+                    >
+                      API 이름 {sortField === 'api_name' && (sortDirection === 'asc' ? '▲' : '▼')}
+                    </th>
+                    <th
+                      className="border px-3 py-2 w-[30%] cursor-pointer"
+                      onClick={() => handleSort('description')}
+                    >
+                      설명 {sortField === 'description' && (sortDirection === 'asc' ? '▲' : '▼')}
+                    </th>
+                    <th
+                      className="border px-3 py-2 w-[9%] cursor-pointer"
+                      onClick={() => handleSort('method')}
+                    >
+                      Method {sortField === 'method' && (sortDirection === 'asc' ? '▲' : '▼')}
+                    </th>
+                    <th
+                      className="border px-3 py-2 w-[10%] cursor-pointer"
+                      onClick={() => handleSort('has_permission')}
+                    >
+                      권한 {sortField === 'has_permission' && (sortDirection === 'asc' ? '▲' : '▼')}
+                    </th>
+                    <th
+                      className="border px-3 py-2 w-[11%] cursor-pointer"
+                      onClick={() => handleSort('request_status')}
+                    >
+                      신청 상태 {sortField === 'request_status' && (sortDirection === 'asc' ? '▲' : '▼')}
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {sortedData.length > 0 ? (
+                    sortedData.map((item, idx) => (
+                      <tr key={`${item.api_id}-${item.method}`} className="hover:bg-gray-50">
+                        <td className="border px-3 py-2">{idx + 1}</td>
+                        <td className="border px-3 py-2">{item.api_id}</td>
+                        <td className="border px-3 py-2 text-left truncate" title={item.api_name}>{item.api_name}</td>
+                        <td className="border px-3 py-2 text-left font-mono break-all" title={item.description}>{item.description}</td>
+                        <td className="border px-3 py-2">{item.method}</td>
+                        <td className="border px-3 py-2 font-semibold">
+                          {item.has_permission ? '✅ 보유' : '❌ 없음'}
+                        </td>
+                        <td className="border px-3 py-2">
+                          {item.request_status === 'PENDING' && <span className="text-yellow-600 font-medium">⏳ 대기</span>}
+                          {item.request_status === 'APPROVED' && <span className="text-green-600 font-medium">✅ 승인</span>}
+                          {item.request_status === 'REJECTED' && <span className="text-red-600 font-medium">❌ 반려</span>}
+                          {item.request_status === 'return' && <span className="text-red-600 font-medium">🔁 권한철회</span>}
+                          {!item.request_status && <span className="text-gray-400">-</span>}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={7} className="text-center text-gray-500 py-6">
+                        권한이 부여된 API가 없습니다.
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={7} className="text-center text-gray-500 py-6">
-                      권한이 부여된 API가 없습니다.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+          </div>
         </div>
-      </div>
 
-      {/* 🔔 API Key 발급/재발급 결과 모달 */}
-      {apiKeyInfo && (
-        <ModalApiKeyResult
-          apiKey={apiKeyInfo.key}
-          type={apiKeyInfo.type}
-          onClose={() => setApiKeyInfo(null)}
-        />
-      )}
+        {/* 🔔 API Key 발급/재발급 결과 모달 */}
+        {apiKeyInfo && (
+          <ModalApiKeyResult
+            apiKey={apiKeyInfo.key}
+            type={apiKeyInfo.type}
+            onClose={() => setApiKeyInfo(null)}
+          />
+        )}
+      </div>
     </div>
   );
 };

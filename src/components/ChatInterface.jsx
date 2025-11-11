@@ -5,6 +5,15 @@ import api from '../utils/axios';
 import { useError } from '../utils/ErrorContext';
 import { useMessage } from '../utils/MessageContext';
 
+const ALLOWED_EXTENSIONS = [
+  '.txt', '.csv', '.md', '.log', // 텍스트
+  '.pdf',                     // PDF
+  '.xml', '.jsp', '.html',     // 웹/데이터
+  '.xlsx', '.xls'             // 엑셀
+];
+const MAX_FILES = 3;
+
+
 export default function ChatInterface() {
   const [messages, setMessages] = useState([
     { sender: 'bot', text: '안녕하세요! 무엇을 도와드릴까요?' }
@@ -12,7 +21,7 @@ export default function ChatInterface() {
   const [inputText, setInputText] = useState('');
   const [promptType, setPromptType] = useState('1');
   const [isWaiting, setIsWaiting] = useState(false);
-  const [files, setFiles] = useState([]); // 파일 목록 배열
+  const [files, setFiles] = useState([]);
   const fileInputRef = useRef(null);
   const { showError } = useError();
   const { showMessage } = useMessage();
@@ -21,6 +30,9 @@ export default function ChatInterface() {
   const footerRef = useRef(null);
   const [headerHeight, setHeaderHeight] = useState(0);
   const [footerHeight, setFooterHeight] = useState(0);
+
+  // 👇 textarea의 DOM에 접근하기 위한 ref 생성
+  const textareaRef = useRef(null);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -44,26 +56,78 @@ export default function ChatInterface() {
     };
   }, []);
 
-  // 👇 [수정 1] 프롬프트 타입이 '1' (파일 미지원)로 변경되면,
-  // 첨부된 파일 목록을 자동으로 초기화합니다.
+  // 프롬프트 타입 '1'로 변경 시 파일 목록 초기화
   useEffect(() => {
-    if (promptType === '1') {
-        setFiles([]); // 파일 배열을 비웁니다.
-        // 파일 입력(input) ref 값도 초기화 (선택적이지만 좋은 습관)
-        if (fileInputRef.current) {
-            fileInputRef.current.value = '';
-        }
-    }
-  }, [promptType]); // promptType이 변경될 때마다 이 훅을 실행
+    if (promptType === '1') {
+        setFiles([]);
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
+    }
+  }, [promptType]);
+
+  // 👇 텍스트 입력에 따라 textarea 높이 자동 조절
+  useEffect(() => {
+    if (textareaRef.current) {
+      // 1. 높이를 'auto'로 초기화 (텍스트가 줄어들 때 높이도 줄어들게 함)
+      textareaRef.current.style.height = 'auto'; 
+      // 2. scrollHeight (내용 높이)를 픽셀 단위로 style.height에 설정
+      // (className의 max-h-[200px]가 200px 이상 커지는 것을 막아줌)
+      textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+    }
+  }, [inputText]);
 
   const handleAttachClick = () => {
     fileInputRef.current?.click();
   };
 
+  // 파일 검증 로직
   const handleFileChange = (e) => {
     const selectedFiles = e.target.files;
-    if (selectedFiles && selectedFiles.length > 0) { // 👈 파일이 실제로 선택되었는지 확인
-      setFiles((prevFiles) => [...prevFiles, ...Array.from(selectedFiles)]);
+    if (!selectedFiles || selectedFiles.length === 0) return;
+
+    if (files.length >= MAX_FILES) {
+      showError(`⚠️ 파일은 최대 ${MAX_FILES}개까지만 첨부할 수 있습니다.`);
+      return;
+    }
+
+    const validFiles = [];
+    const invalidFileNames = [];
+
+    Array.from(selectedFiles).forEach(file => {
+      const fileName = file.name;
+      const lastDotIndex = fileName.lastIndexOf('.');
+      
+      if (lastDotIndex === -1) {
+        invalidFileNames.push(fileName); 
+        return;
+      }
+      const fileExt = fileName.slice(lastDotIndex).toLowerCase();
+      
+      if (ALLOWED_EXTENSIONS.includes(fileExt)) {
+        validFiles.push(file);
+      } else {
+        invalidFileNames.push(fileName); 
+      }
+    });
+
+    const spaceAvailable = MAX_FILES - files.length;
+    const filesToAdd = validFiles.slice(0, spaceAvailable);
+    const filesRejectedDueToLimit = validFiles.slice(spaceAvailable);
+
+    if (filesToAdd.length > 0) {
+      setFiles((prevFiles) => [...prevFiles, ...filesToAdd]);
+    }
+
+    const errorMessages = [];
+    if (invalidFileNames.length > 0) {
+      errorMessages.push(`지원하지 않는 파일 형식:\n${invalidFileNames.join('\n')}\n\n(지원: ${ALLOWED_EXTENSIONS.join(', ')})`);
+    }
+    if (filesRejectedDueToLimit.length > 0) {
+      errorMessages.push(`최대 ${MAX_FILES}개를 초과하여 ${filesRejectedDueToLimit.length}개의 파일이 제외되었습니다.`);
+    }
+    if (errorMessages.length > 0) {
+      showError(errorMessages.join('\n\n'));
     }
   };
 
@@ -71,10 +135,10 @@ export default function ChatInterface() {
     setFiles((prevFiles) => prevFiles.filter((_, index) => index !== indexToRemove));
   };
 
+  // (파일 개수 3개 초과 검사 로직 제거됨 - handleFileChange에서 처리)
   const handleSendMessage = async () => {
         const prompt = inputText.trim();
     
-        // (요청사항) 타입 1일 때는 files 배열이 비어있도록 위 useEffect에서 처리
         if ((!prompt && files.length === 0) || !['0', '1', '2'].includes(promptType) || isWaiting) {
           if (!['0', '1', '2'].includes(promptType)) {
             showError('⚠️ 유효한 프롬프트 타입을 선택해주세요.');
@@ -82,11 +146,8 @@ export default function ChatInterface() {
           return;
         }
 
-        if (files.length > 3){
-            showMessage('⚠️ 파일은 3개까지만 올릴 수 있습니다.');
-            return false;
-        }
-
+        // (파일 개수 검증 제거됨)
+    
         let userMessageText = prompt;
         if (files.length > 0 && !prompt) {
           userMessageText = `[파일 ${files.length}개 전송]`;
@@ -105,8 +166,6 @@ export default function ChatInterface() {
           formData.append('query', prompt);
           formData.append('type', promptType);
           
-          // 타입 1일 경우 files는 항상 빈 배열이므로 
-          // 'file' 키 자체가 전송되지 않음 (서버 로직과 일치)
           if (files.length > 0) {
             files.forEach((file) => {
               formData.append('file', file);
@@ -135,10 +194,11 @@ export default function ChatInterface() {
         } catch (error) {
           if (error.name !== 'SessionExpiredError') {
               let errorMessageText = '❌ 서버 오류 발생';
-              console.log(error);
-              if (error.response?.data?.message) {
-                errorMessageText = `🚨 오류 메시지: ${error.response?.data?.message}`;
-              } 
+
+              if (error.response?.data?.message) { 
+                errorMessageText = `${error.response.data.message}`;
+              }
+              
               const errorMessage = { sender: 'error', text: errorMessageText };
               setMessages((prev) => prev.slice(0, -1).concat(errorMessage));
               showError(errorMessageText);
@@ -156,7 +216,7 @@ export default function ChatInterface() {
   };
 
   const renderMessage = (msg, index) => {
-    // ... (renderMessage 로직은 동일) ...
+    // ... renderMessage ...
     const isUser = msg.sender === 'user';
     const isBot = msg.sender === 'bot';
     const isError = msg.sender === 'error';
@@ -198,7 +258,7 @@ export default function ChatInterface() {
 
   return (
     <div className="relative flex flex-col h-full bg-white rounded-lg shadow-md overflow-hidden">
-      {/* ... (Header는 동일) ... */}
+      {/* ... Header ... */}
       <div ref={headerRef} className="p-4 border-b bg-gray-50 flex justify-between items-center flex-shrink-0 z-10">
         <div className="flex items-center gap-2">
           <Bot size={20} className="text-gray-700" />
@@ -219,7 +279,7 @@ export default function ChatInterface() {
         </div>
       </div>
 
-      {/* ... (Message Area는 동일) ... */}
+      {/* ... Message Area ... */}
       <div
         className="absolute left-0 right-0 overflow-y-auto p-4 space-y-4 bg-gray-50"
         style={{ top: `${headerHeight}px`, bottom: `${footerHeight}px` }}
@@ -231,7 +291,6 @@ export default function ChatInterface() {
       {/* Input Area */}
       <div ref={footerRef} className="absolute bottom-0 left-0 right-0 p-4 border-t bg-gray-100 flex-shrink-0 z-10">
         
-        {/* 👇 [수정 2] 파일 칩 목록: promptType이 '2'일 때만 보이도록 수정 */}
         {promptType === '2' && files.length > 0 && (
           <div className="mb-4 flex flex-wrap gap-2">
             {files.map((file, index) => (
@@ -260,36 +319,38 @@ export default function ChatInterface() {
             ref={fileInputRef}
             onChange={handleFileChange}
             onClick={(e) => { 
-              e.target.value = null }}
+              e.target.value = null 
+            }}
             className="hidden"
             multiple
+            accept={ALLOWED_EXTENSIONS.join(',')}
           />
 
-          {/* 👇 [수정 3] 파일 첨부 버튼: promptType이 '2'일 때만 보이도록 수정 */}
           {promptType === '2' && (
-            <button
-              onClick={handleAttachClick}
-              className="border border-gray-300 hover:bg-gray-200 text-gray-600 p-2 rounded-lg h-[40px] flex-shrink-0"
-              disabled={isWaiting}
-              aria-label="Attach file"
-            >
-              <Paperclip size={20} />
-            </button>
-          )}
+            <button
+              onClick={handleAttachClick}
+              className="border border-gray-300 hover:bg-gray-200 text-gray-600 p-2 rounded-lg h-[40px] flex-shrink-0"
+              disabled={isWaiting}
+              aria-label="Attach file"
+            >
+              <Paperclip size={20} />
+            </button>
+          )}
 
           <textarea
+            ref={textareaRef} 
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder="메시지를 입력하세요 (Shift+Enter로 줄바꿈)"
-            className="flex-1 border rounded-lg p-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 h-[40px]"
+            className="flex-1 border rounded-lg p-2 resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 max-h-[150px] overflow-y-auto"
             rows={1}
             disabled={isWaiting}
           />
           <button
             onClick={handleSendMessage}
+            // 👇 버튼 높이를 고정 h-[40px] 대신 h-full로 변경 (textarea와 함께 정렬됨)
             className="bg-blue-600 hover:bg-blue-700 text-white p-2 rounded-lg disabled:opacity-50 h-[40px] flex-shrink-0"
-            // (활성화 로직은 그대로 둠: 타입 1일때는 files.length가 0이므로 inputText만 체크함)
             disabled={(!inputText.trim() && files.length === 0) || isWaiting}
           >
             <Send size={20} />

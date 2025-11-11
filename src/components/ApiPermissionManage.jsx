@@ -270,262 +270,266 @@ const UserApiPermissionManager = () => {
   const totalPage = Math.max(1, Math.ceil(totalCount / perPage));
 
   return (
-    <div className="flex w-full gap-4 h-full">
-      {/* 유저 목록 */}
-      <div className="flex flex-col min-w-[330px] max-w-[420px] border rounded p-4 bg-white shadow">
-        <h2 className="text-lg font-semibold mb-1">👤 유저 목록</h2>
+    <div className="flex flex-col flex-1 h-full min-h-0">
+      <h2 className="text-xl font-bold mb-2">🔐 API 권한 관리</h2>
 
-        {/* 🔧 검색 영역 */}
-        <div className="flex flex-wrap items-center gap-2 mt-2 bg-white px-4 py-2 rounded border shadow-sm">
-          <select
-            value={searchField}
-            onChange={(e) => setSearchField(e.target.value)}
-            className="border px-2 py-2 rounded text-sm"
-          >
-            <option value="user_id">ID</option>
-            <option value="user_name">이름</option>
-          </select>
-          <input
-            type="text"
-            value={searchKeyword}
-            onChange={(e) => setSearchKeyword(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter') {
+      <div className="flex flex-row flex-1 gap-4 mt-2 min-h-0">
+        {/* 유저 목록 */}
+        <div className="flex flex-col min-w-[330px] max-w-[420px] border rounded p-3 bg-white shadow">
+          <h2 className="text-lg font-semibold mb-1">📋 유저 목록</h2>
+
+          {/* 🔧 검색 영역 */}
+          <div className="flex flex-wrap items-center gap-2 mt-2 bg-white px-4 py-2 rounded border shadow-sm">
+            <select
+              value={searchField}
+              onChange={(e) => setSearchField(e.target.value)}
+              className="border px-2 py-2 rounded text-sm"
+            >
+              <option value="user_id">ID</option>
+              <option value="user_name">이름</option>
+            </select>
+            <input
+              type="text"
+              value={searchKeyword}
+              onChange={(e) => setSearchKeyword(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter') {
+                  setPage(1);
+                  fetchUsers();
+                  setSelectedUser(null);
+                  setApiList([]);
+                }
+              }}
+              placeholder="검색어 입력"
+              className="flex-1 min-w-[120px] border bg-blue-50 px-3 py-2 rounded text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
+            />
+            <button
+              onClick={() => {
                 setPage(1);
                 fetchUsers();
                 setSelectedUser(null);
                 setApiList([]);
-              }
-            }}
-            placeholder="검색어 입력"
-            className="flex-1 min-w-[120px] border bg-blue-50 px-3 py-2 rounded text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300"
-          />
-          <button
-            onClick={() => {
-              setPage(1);
-              fetchUsers();
-              setSelectedUser(null);
-              setApiList([]);
-            }}
-            className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
-          >
-            검색
-          </button>
-        </div>
-
-        {/* 🔽 표시 수 드롭다운 영역 */}
-        <div className="flex items-center justify-end gap-1 mt-2 mb-2 text-sm">
-          <label className="text-gray-600 whitespace-nowrap">표시 수:</label>
-          <select
-            value={perPage}
-            onChange={(e) => {
-              setPage(1);
-              setPerPage(Number(e.target.value));
-            }}
-            className="border px-1.5 py-1 rounded text-sm w-[50px]"
-          >
-            <option value={10}>10</option>
-            <option value={15}>15</option>
-            <option value={20}>20</option>
-          </select>
-        </div>
-
-        <div className="flex-1 overflow-y-auto border rounded">
-          <table className="w-full text-sm border text-center table-fixed">
-            <thead className="bg-gray-50 sticky top-0 z-10">
-              <tr>
-                <th className="border px-3 py-2 w-[15%]">#</th>
-                <th className="border px-3 py-2 w-[42.5%]">이름</th>
-                <th className="border px-3 py-2 w-[42.5%]">ID</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.length > 0 ? (
-                users.map((user, index) => (
-                  <tr
-                    key={user.user_id}
-                    onClick={() => setSelectedUser(user)}
-                    className={`cursor-pointer hover:bg-blue-100 transition-all duration-150 ${
-                      selectedUser?.user_id === user.user_id
-                        ? 'bg-blue-100 text-blue-600 font-semibold'
-                        : ''
-                    }`}
-                  >
-                    <td className="border px-3 py-2">{(page - 1) * perPage + index + 1}</td>
-                    <td className="border px-3 py-2">{user.user_name}</td>
-                    <td className="border px-3 py-2">{user.user_id}</td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={3} className="text-center py-6 text-gray-500">
-                    등록된 유저가 없습니다.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-
-  
-        <div className="flex justify-center items-center gap-2 mt-4 text-sm">
-          <button
-            onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-            disabled={page === 1}
-            className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50"
-          >
-            ◀ 이전
-          </button>
-          <span>{page} / {totalPage}</span>
-          <button
-            onClick={() => setPage((prev) => Math.min(totalPage, prev + 1))}
-            disabled={page >= totalPage}
-            className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50"
-          >
-            다음 ▶
-          </button>
-        </div>
-      </div>
-  
-      {/* API 권한 테이블 */}
-      <div className="flex flex-col flex-1 bg-white shadow rounded p-4 min-w-[750px]">
-        <div className="flex items-center justify-between mb-1">
-          <h2 className="text-lg font-semibold">🔐 API 권한 설정</h2>
-          <button 
-            className="relative px-3 py-1.5 bg-yellow-400 hover:bg-yellow-500 rounded text-sm font-semibold"
-            onClick={() => {handleToggleRequests(); requestParamInit();}}
-          >
-            📬 신청 내역 보기
-            {pendingCount > 0 && (
-              <span className="absolute -top-2 -right-2 flex items-center justify-center h-5 w-5">
-                {/* 뿌려지는 효과 */}
-                <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping"></span>
-              
-                {/* 숫자 뱃지 */}
-                <span className="relative z-10 inline-flex items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold w-5 h-5">
-                  {pendingCount}
-                </span>
-              </span>
-            )}
-          </button>
-        </div>
-        
-        {/* 🔍 검색 + Method 필터 */}
-        <div className="flex flex-wrap items-center gap-2 mt-2 mb-2 bg-white px-4 py-2 rounded border shadow-sm">
-          <label className="w-20 text-gray-700 px-3">검색어</label>
-          <input
-            type="text"
-            value={apiSearchKeyword}
-            onChange={(e) => setApiSearchKeyword(e.target.value)}
-            placeholder="API 이름 또는 경로로 검색"
-            className="flex-1 min-w-[180px] border px-3 py-2 rounded text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 bg-blue-50"
-          />
-          <label className="w-20 text-gray-700 px-3">Method</label>
-          <select
-            value={methodFilter}
-            onChange={(e) => setMethodFilter(e.target.value)}
-            className="border px-3 py-2 rounded text-sm bg-blue-50"
-          >
-            <option value="ALL">전체</option>
-            <option value="GET">GET</option>
-            <option value="POST">POST</option>
-            <option value="PUT">PUT</option>
-            <option value="PATCH">PATCH</option>
-            <option value="DELETE">DELETE</option>
-            <option value="HEAD">HEAD</option>
-            <option value="OPTIONS">OPTIONS</option>
-          </select>
-          <button
-            onClick={() => {
-              setApiSearchKeyword('');
-              setMethodFilter('ALL');
-            }}
-            className="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded text-sm"
-          >
-            초기화
-          </button>
-        </div>
-
-        {!selectedUser ? (
-          <div className="flex flex-1 items-center justify-center text-gray-500 text-lg font-semibold border">
-            유저를 선택해주세요.
+              }}
+              className="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm"
+            >
+              검색
+            </button>
           </div>
-        ) : (
-          <>
-            {/* 📋 테이블 */}
-            <div className="flex-1 overflow-y-auto border-t">
-              <table className="w-full text-sm border text-center table-fixed">
-                <thead className="bg-gray-50 sticky top-0 z-10">
-                  <tr>
-                    <th className="border px-3 py-2 w-[4.5%]">#</th>
-                    <th className="border px-3 py-2 w-[13.5%]">API ID</th>
-                    <th className="border px-3 py-2 w-[13.5%]">API 이름</th>
-                    <th className="border px-3 py-2 w-[40%]">경로</th>
-                    <th className="border px-3 py-2 w-[10%]">Method</th>
-                    <th className="border px-3 py-2 w-[10%] text-center">
-                      <label className="inline-flex items-center gap-2 cursor-pointer">
-                        <span className="text-sm">권한</span>
-                        <input
-                          type="checkbox"
-                          checked={
-                            filteredApiList.length > 0 &&
-                            filteredApiList.every(api => userPermissions.has(`${api.api_id}-${api.method}`))
-                          }
-                          onChange={(e) => {
-                            const newSet = new Set(userPermissions);
-                            if (e.target.checked) {
-                              filteredApiList.forEach(api => newSet.add(`${api.api_id}-${api.method}`));
-                            } else {
-                              filteredApiList.forEach(api => newSet.delete(`${api.api_id}-${api.method}`));
-                            }
-                            setUserPermissions(newSet);
-                          }}
-                          title="전체 선택"
-                          className="cursor-pointer"
-                        />
-                      </label>
-                    </th>
 
+          {/* 🔽 표시 수 드롭다운 영역 */}
+          <div className="flex items-center justify-end gap-1 mt-2 mb-2 text-sm">
+            <label className="text-gray-600 whitespace-nowrap">표시 수:</label>
+            <select
+              value={perPage}
+              onChange={(e) => {
+                setPage(1);
+                setPerPage(Number(e.target.value));
+              }}
+              className="border px-1.5 py-1 rounded text-sm w-[50px]"
+            >
+              <option value={10}>10</option>
+              <option value={15}>15</option>
+              <option value={20}>20</option>
+            </select>
+          </div>
+
+          <div className="flex-1 overflow-y-auto border rounded">
+            <table className="w-full text-sm border text-center table-fixed">
+              <thead className="bg-gray-50 sticky top-0 z-10">
+                <tr>
+                  <th className="border px-3 py-2 w-[15%]">#</th>
+                  <th className="border px-3 py-2 w-[42.5%]">이름</th>
+                  <th className="border px-3 py-2 w-[42.5%]">ID</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users.length > 0 ? (
+                  users.map((user, index) => (
+                    <tr
+                      key={user.user_id}
+                      onClick={() => setSelectedUser(user)}
+                      className={`cursor-pointer hover:bg-blue-100 transition-all duration-150 ${
+                        selectedUser?.user_id === user.user_id
+                          ? 'bg-blue-100 text-blue-600 font-semibold'
+                          : ''
+                      }`}
+                    >
+                      <td className="border px-3 py-2">{(page - 1) * perPage + index + 1}</td>
+                      <td className="border px-3 py-2">{user.user_name}</td>
+                      <td className="border px-3 py-2">{user.user_id}</td>
+                    </tr>
+                  ))
+                ) : (
+                  <tr>
+                    <td colSpan={3} className="text-center py-6 text-gray-500">
+                      등록된 유저가 없습니다.
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {filteredApiList.length > 0 ? (
-                    filteredApiList.map((api, index) => (
-                      <tr key={`${api.api_id}-${api.method}`} className="hover:bg-gray-100">
-                        <td className="border px-3 py-2">{index + 1}</td>
-                        <td className="border px-3 py-2 text-left truncate">{api.api_id}</td>
-                        <td className="border px-3 py-2 text-left truncate">{api.api_name}</td>
-                        <td className="border px-3 py-2 text-left truncate font-mono break-all">{api.path}</td>
-                        <td className="border px-3 py-2 uppercase">{api.method}</td>
-                        <td className="border px-3 py-2">
+                )}
+              </tbody>
+            </table>
+          </div>
+
+    
+          <div className="flex justify-center items-center gap-2 mt-4 text-sm">
+            <button
+              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              disabled={page === 1}
+              className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50"
+            >
+              ◀ 이전
+            </button>
+            <span>{page} / {totalPage}</span>
+            <button
+              onClick={() => setPage((prev) => Math.min(totalPage, prev + 1))}
+              disabled={page >= totalPage}
+              className="px-3 py-1 bg-gray-200 hover:bg-gray-300 rounded disabled:opacity-50"
+            >
+              다음 ▶
+            </button>
+          </div>
+        </div>
+    
+        {/* API 권한 테이블 */}
+        <div className="flex flex-col flex-1 bg-white shadow rounded p-4 min-w-[750px]">
+          <div className="flex items-center justify-between mb-1">
+            <h2 className="text-lg font-semibold">🔐 API 권한 설정</h2>
+            <button 
+              className="relative px-3 py-1.5 bg-yellow-400 hover:bg-yellow-500 rounded text-sm font-semibold"
+              onClick={() => {handleToggleRequests(); requestParamInit();}}
+            >
+              📬 신청 내역 보기
+              {pendingCount > 0 && (
+                <span className="absolute -top-2 -right-2 flex items-center justify-center h-5 w-5">
+                  {/* 뿌려지는 효과 */}
+                  <span className="absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75 animate-ping"></span>
+                
+                  {/* 숫자 뱃지 */}
+                  <span className="relative z-10 inline-flex items-center justify-center rounded-full bg-red-500 text-white text-xs font-bold w-5 h-5">
+                    {pendingCount}
+                  </span>
+                </span>
+              )}
+            </button>
+          </div>
+          
+          {/* 🔍 검색 + Method 필터 */}
+          <div className="flex flex-wrap items-center gap-2 mt-2 mb-2 bg-white px-4 py-2 rounded border shadow-sm">
+            <label className="w-20 text-gray-700 px-3">검색어</label>
+            <input
+              type="text"
+              value={apiSearchKeyword}
+              onChange={(e) => setApiSearchKeyword(e.target.value)}
+              placeholder="API 이름 또는 경로로 검색"
+              className="flex-1 min-w-[180px] border px-3 py-2 rounded text-sm placeholder:text-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-300 bg-blue-50"
+            />
+            <label className="w-20 text-gray-700 px-3">Method</label>
+            <select
+              value={methodFilter}
+              onChange={(e) => setMethodFilter(e.target.value)}
+              className="border px-3 py-2 rounded text-sm bg-blue-50"
+            >
+              <option value="ALL">전체</option>
+              <option value="GET">GET</option>
+              <option value="POST">POST</option>
+              <option value="PUT">PUT</option>
+              <option value="PATCH">PATCH</option>
+              <option value="DELETE">DELETE</option>
+              <option value="HEAD">HEAD</option>
+              <option value="OPTIONS">OPTIONS</option>
+            </select>
+            <button
+              onClick={() => {
+                setApiSearchKeyword('');
+                setMethodFilter('ALL');
+              }}
+              className="px-3 py-2 bg-gray-200 hover:bg-gray-300 rounded text-sm"
+            >
+              초기화
+            </button>
+          </div>
+
+          {!selectedUser ? (
+            <div className="flex flex-1 items-center justify-center text-gray-500 text-lg font-semibold border">
+              유저를 선택해주세요.
+            </div>
+          ) : (
+            <>
+              {/* 📋 테이블 */}
+              <div className="flex-1 overflow-y-auto border-t">
+                <table className="w-full text-sm border text-center table-fixed">
+                  <thead className="bg-gray-50 sticky top-0 z-10">
+                    <tr>
+                      <th className="border px-3 py-2 w-[4.5%]">#</th>
+                      <th className="border px-3 py-2 w-[13.5%]">API ID</th>
+                      <th className="border px-3 py-2 w-[13.5%]">API 이름</th>
+                      <th className="border px-3 py-2 w-[40%]">경로</th>
+                      <th className="border px-3 py-2 w-[10%]">Method</th>
+                      <th className="border px-3 py-2 w-[10%] text-center">
+                        <label className="inline-flex items-center gap-2 cursor-pointer">
+                          <span className="text-sm">권한</span>
                           <input
                             type="checkbox"
-                            checked={userPermissions.has(`${api.api_id}-${api.method}`)}
-                            onChange={() => handleCheckboxChange(api.api_id, api.method)}
+                            checked={
+                              filteredApiList.length > 0 &&
+                              filteredApiList.every(api => userPermissions.has(`${api.api_id}-${api.method}`))
+                            }
+                            onChange={(e) => {
+                              const newSet = new Set(userPermissions);
+                              if (e.target.checked) {
+                                filteredApiList.forEach(api => newSet.add(`${api.api_id}-${api.method}`));
+                              } else {
+                                filteredApiList.forEach(api => newSet.delete(`${api.api_id}-${api.method}`));
+                              }
+                              setUserPermissions(newSet);
+                            }}
+                            title="전체 선택"
+                            className="cursor-pointer"
                           />
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <tr className="text-gray-500 text-center">
-                      <td className="border px-3 py-6" colSpan={5}>권한 가능한 API가 없습니다.</td>
-                    </tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                        </label>
+                      </th>
 
-            {/* 💾 저장 버튼 */}
-            <div className="text-right pt-2 border-t">
-              <button
-                onClick={savePermissions}
-                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
-              >
-                저장
-              </button>
-            </div>
-          </>
-        )}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {filteredApiList.length > 0 ? (
+                      filteredApiList.map((api, index) => (
+                        <tr key={`${api.api_id}-${api.method}`} className="hover:bg-gray-100">
+                          <td className="border px-3 py-2">{index + 1}</td>
+                          <td className="border px-3 py-2 text-left truncate">{api.api_id}</td>
+                          <td className="border px-3 py-2 text-left truncate">{api.api_name}</td>
+                          <td className="border px-3 py-2 text-left truncate font-mono break-all">{api.path}</td>
+                          <td className="border px-3 py-2 uppercase">{api.method}</td>
+                          <td className="border px-3 py-2">
+                            <input
+                              type="checkbox"
+                              checked={userPermissions.has(`${api.api_id}-${api.method}`)}
+                              onChange={() => handleCheckboxChange(api.api_id, api.method)}
+                            />
+                          </td>
+                        </tr>
+                      ))
+                    ) : (
+                      <tr className="text-gray-500 text-center">
+                        <td className="border px-3 py-6" colSpan={5}>권한 가능한 API가 없습니다.</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+
+              {/* 💾 저장 버튼 */}
+              <div className="text-right pt-2 border-t">
+                <button
+                  onClick={savePermissions}
+                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+                >
+                  저장
+                </button>
+              </div>
+            </>
+          )}
+        </div>
       </div>
 
       {showRequestModal && (
