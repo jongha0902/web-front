@@ -1,0 +1,65 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+html, body, #root {
+    height: 100%; /* ✅ html, body, #root 모두 높이 100% */
+    margin: 0;
+    padding: 0;
+    /* overflow: hidden; */
+  }
+  
+#root {
+    display: flex; /* ✅ flex 컨테이너로 설정 */
+    flex-direction: column; /* ✅ 세로 방향 */
+}
+
+.react-flow__node-group {
+    border: none !important;
+    box-shadow: none !important;
+}
+@keyframes pingOnce {
+    0% { transform: scale(1.5); opacity: 0.8; }
+    50% { transform: scale(2); opacity: 1; }
+    100% { transform: scale(1.5); opacity: 0.8; }
+}
+
+.animate-pingOnce {
+    animation: pingOnce 1s ease-in-out;
+}
+
+/* 👇 로딩 점 애니메이션 추가 */
+@keyframes loading-dots {
+    0%, 20% {
+        content: '.';
+    }
+    40% {
+        content: '..';
+    }
+    60%, 100% {
+        content: '...';
+    }
+}
+
+.loading-dots::after {
+    content: '.'; /* 초기 콘텐츠 */
+    animation: loading-dots 1.4s infinite;
+    display: inline-block; /* 애니메이션 적용 위해 필요 */
+    width: 1.5em; /* 점 개수에 따라 너비 확보 */
+    text-align: left; /* 점이 왼쪽에 붙도록 */
+    vertical-align: bottom; /* 텍스트와 정렬 */
+}
+
+@keyframes spin {
+    from {
+      transform: rotate(0deg);
+    }
+    to {
+      transform: rotate(360deg);
+    }
+}
+  
+.spin-animation {
+    display: inline-block; /* transform 적용 위해 필요 */
+    animation: spin 2s linear infinite; /* 1초 동안 선형으로 무한 반복 */
+}
