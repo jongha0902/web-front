@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Send, User, Bot, AlertCircle, Paperclip, X, Copy, Check } from 'lucide-react';
+import { Send, User, Bot, AlertCircle, Paperclip, X, Copy, Check, BookOpen } from 'lucide-react';
 import api from '../utils/axios';
 import { useError } from '../utils/ErrorContext';
 
@@ -11,7 +11,7 @@ const ALLOWED_EXTENSIONS = [
 ];
 const MAX_FILES = 3;
 
-// ✅ 간단한 UUID 생성 함수 (외부 라이브러리 없이 구현)
+// ✅ 간단한 UUID 생성 함수
 const generateUUID = () => {
   if (typeof crypto !== 'undefined' && crypto.randomUUID) {
     return crypto.randomUUID();
@@ -31,10 +31,8 @@ export default function ChatInterface() {
   const [files, setFiles] = useState([]);
   const [copiedIndex, setCopiedIndex] = useState(null);
   
-  // ✅ 세션 ID 상태 관리 (localStorage에서 불러오거나 새로 생성)
+  // ✅ 세션 ID 상태 관리
   const [sessionId, setSessionId] = useState(() => {
-    //const savedSession = localStorage.getItem('chat_session_id');
-    //return savedSession || generateUUID();
     return generateUUID();
   });
 
@@ -47,7 +45,6 @@ export default function ChatInterface() {
   const [headerHeight, setHeaderHeight] = useState(0);
   const [footerHeight, setFooterHeight] = useState(0);
 
-  // ✅ 세션 ID가 변경되거나 생성되면 로컬 스토리지에 저장
   useEffect(() => {
     localStorage.setItem('chat_session_id', sessionId);
   }, [sessionId]);
@@ -180,8 +177,6 @@ export default function ChatInterface() {
     try {
       const formData = new FormData();
       formData.append('query', prompt);
-      
-      // ✅ 동적으로 생성된 sessionId 사용
       formData.append('session_id', sessionId);
       
       if (files.length > 0) {
@@ -199,10 +194,16 @@ export default function ChatInterface() {
           }
         }
       );
-      
+
       console.log(response);
+
+      // ✅ [수정] 응답 데이터에서 sources를 꺼내서 메시지에 포함
+      const botMessage = { 
+        sender: 'bot', 
+        text: response.data.answer,
+        sources: response.data.sources || [] // 출처 데이터 추가
+      };
       
-      const botMessage = { sender: 'bot', text: response.data.answer };
       setMessages((prev) => prev.slice(0, -1).concat(botMessage));
 
       setInputText('');
@@ -259,11 +260,11 @@ export default function ChatInterface() {
           {/* 2. 사용자용 복사 버튼 */}
           {isUser && !isLoading && (
              <button 
-                onClick={() => handleCopy(msg.text, index)}
-                className="mb-2 text-gray-400 hover:text-gray-600 transition-colors"
-                title="메시지 복사"
+               onClick={() => handleCopy(msg.text, index)}
+               className="mb-2 text-gray-400 hover:text-gray-600 transition-colors"
+               title="메시지 복사"
              >
-                {isCopied ? <Check size={16} /> : <Copy size={16} />}
+               {isCopied ? <Check size={16} /> : <Copy size={16} />}
              </button>
           )}
 
@@ -283,6 +284,23 @@ export default function ChatInterface() {
               <>
                 {/* 텍스트 내용 */}
                 {formatText(msg.text)}
+
+                {/* ✅ [추가] 참고 자료(출처) 표시 영역 */}
+                {isBot && msg.sources && msg.sources.length > 0 && (
+                  <div className="mt-4 pt-3 border-t border-gray-300">
+                    <p className="text-xs font-bold text-gray-500 mb-2 flex items-center gap-1">
+                      <BookOpen size={14} /> 참고 자료
+                    </p>
+                    <ul className="space-y-1">
+                      {msg.sources.map((source, idx) => (
+                        <li key={idx} className="flex items-start text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded hover:bg-blue-100 transition-colors">
+                          <span className="mr-1.5">•</span>
+                          <span>{source}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
 
                 {/* 첨부 파일 목록 표시 */}
                 {msg.attachedFiles && msg.attachedFiles.length > 0 && (
@@ -308,11 +326,11 @@ export default function ChatInterface() {
           {/* 4. 봇용 복사 버튼 */}
           {!isUser && !isLoading && !isError && (
              <button 
-                onClick={() => handleCopy(msg.text, index)}
-                className="mb-2 text-gray-400 hover:text-gray-600 transition-colors"
-                title="답변 복사"
+               onClick={() => handleCopy(msg.text, index)}
+               className="mb-2 text-gray-400 hover:text-gray-600 transition-colors"
+               title="답변 복사"
              >
-                {isCopied ? <Check size={16} /> : <Copy size={16} />}
+               {isCopied ? <Check size={16} /> : <Copy size={16} />}
              </button>
           )}
 
